@@ -7,7 +7,13 @@
     <style>
         /* 전체 배경 및 기본 설정 */
         body {
+            /* 나중에 배경 이미지를 넣으실 때 아래 주석을 풀고 경로를 수정하세요! */
+            /* background-image: url('your-background-image.jpg'); */
             background-color: #1a1a1a;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            
             color: #ffffff;
             font-family: 'Malgun Gothic', sans-serif;
             margin: 0;
@@ -17,12 +23,11 @@
             align-items: center;
         }
 
-        /* 화면 전체 레이아웃 (좌측 메뉴, 우측 타이틀 분리) */
         .title-container {
             width: 80%;
             max-width: 1000px;
             display: flex;
-            justify-content: space-between; /* 양쪽 끝으로 배치 */
+            justify-content: space-between;
             align-items: center;
         }
 
@@ -30,10 +35,10 @@
         .menu-section {
             display: flex;
             flex-direction: column;
-            gap: 40px; /* 메뉴 간격 일정하게 조정 */
+            gap: 45px; /* 시작, 갤러리, 로그아웃 버튼 사이의 간격을 완벽하게 동일하게 맞춤 */
         }
 
-        /* 개별 메뉴 버튼 스타일 */
+        /* 개별 메뉴 버튼 스타일 (밑줄 제거 및 정렬 수정) */
         .menu-btn {
             background: none;
             border: none;
@@ -41,47 +46,45 @@
             font-size: 32px;
             font-weight: bold;
             cursor: pointer;
-            text-align: left;
+            text-align: left; /* 좌측 정렬 확실하게 고정 */
             padding: 0;
             transition: color 0.2s, transform 0.2s;
             width: fit-content;
         }
 
-        /* 이미지에 있던 밑줄 효과 (시작, 갤러리에만 적용) */
-        .menu-btn.underline {
-            text-decoration: underline;
-            text-underline-offset: 8px;
-        }
-
         /* 마우스 올렸을 때의 효과 */
         .menu-btn:hover {
-            color: #d9534f; /* TRPG에 어울리는 붉은색 포인트 */
-            transform: translateX(10px); /* 오른쪽으로 살짝 이동 */
+            color: #d9534f;
+            transform: translateX(10px);
         }
 
-        /* 로그아웃과 계정 정보를 묶는 영역 */
-        .logout-group {
+        /* 로그아웃 버튼과 계정 정보를 묶어주는 래퍼 */
+        .logout-wrapper {
             display: flex;
             flex-direction: column;
-            gap: 8px; /* 로그아웃 버튼과 계정 정보 사이 간격 */
-            margin-top: 30px; /* 위 메뉴들과의 간격을 조금 더 띄움 */
+            gap: 8px; /* 로그아웃 글자와 이메일 사이의 간격 */
         }
 
-        /* 하단 로그인된 계정 정보 텍스트 (요청하신 기능) */
+        /* 하단 로그인된 계정 정보 텍스트 */
         .user-account {
             font-size: 15px;
             color: #888888;
-            padding-left: 2px;
+            padding-left: 2px; /* 버튼 텍스트와 시각적 시작점을 맞추기 위한 미세 조정 */
         }
 
-        /* 우측 타이틀 텍스트 */
+        /* 우측 타이틀 영역 */
+        .title-wrapper {
+            /* 배경 그림을 위해 타이틀을 위로 끌어올림 */
+            transform: translateY(-80px); 
+        }
+
         .main-title {
             font-size: 100px;
             font-weight: 900;
             margin: 0;
             letter-spacing: 5px;
             color: #ffffff;
-            text-shadow: 4px 4px 10px rgba(0, 0, 0, 0.5); /* 글자 입체감 부여 */
+            text-shadow: 4px 4px 10px rgba(0, 0, 0, 0.7); /* 배경 그림 위에서도 잘 보이도록 그림자 강화 */
         }
     </style>
 </head>
@@ -89,16 +92,16 @@
 
     <div class="title-container">
         <div class="menu-section">
-            <button class="menu-btn underline">시작</button>
-            <button class="menu-btn underline">갤러리</button>
+            <button class="menu-btn">시작</button>
+            <button class="menu-btn">갤러리</button>
             
-            <div class="logout-group">
+            <div class="logout-wrapper">
                 <button class="menu-btn">로그아웃</button>
                 <span class="user-account" id="current-user">user_account@email.com</span>
             </div>
         </div>
 
-        <div>
+        <div class="title-wrapper">
             <h1 class="main-title">타이틀</h1>
         </div>
     </div>
