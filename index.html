@@ -1,225 +1,85 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>파칭코</title>
-  <style>
-    body {
-      margin: 0; padding: 0; display: flex; height: 100vh;
-      background-color: #1a252f; color: #fff;
-      font-family: 'Malgun Gothic', sans-serif; overflow: hidden;
-    }
-    #sidebar {
-      width: 300px; background-color: #2c3e50; padding: 20px;
-      display: flex; flex-direction: column; gap: 15px;
-      box-shadow: 5px 0 15px rgba(0,0,0,0.5); z-index: 10;
-    }
-    #user-panel {
-      background-color: #34495e; padding: 10px; border-radius: 8px; text-align: center;
-      font-size: 0.9em; display: flex; flex-direction: column; gap: 8px;
-    }
-    #logout-btn {
-      padding: 5px; background-color: #7f8c8d; color: white; border: none; border-radius: 3px; cursor: pointer;
-    }
-    #logout-btn:hover { background-color: #95a5a6; }
-
-    #economy-panel, #stats-panel {
-      background-color: #34495e; padding: 15px; border-radius: 8px; text-align: center;
-    }
-    #ball-count { font-size: 2.5em; font-weight: bold; color: #f1c40f; }
-    
-    .stat-label { color: #bdc3c7; font-size: 0.9em; margin-bottom: 5px; }
-    .stat-value { font-size: 1.5em; font-weight: bold; }
-    #total-spins { color: #fff; }
-    #current-spins { color: #e74c3c; }
-
-    /* 도움말 버튼 스타일 */
-    #help-btn {
-      width: 100%; padding: 12px; background-color: #8e44ad; color: white;
-      border: none; border-radius: 5px; font-size: 1.1em; font-weight: bold;
-      cursor: pointer; transition: background-color 0.3s;
-    }
-    #help-btn:hover { background-color: #9b59b6; }
-
-    #recharge-btn {
-      display: none; margin-top: 10px; width: 100%; padding: 10px;
-      background-color: #e74c3c; color: white; border: none; border-radius: 5px;
-      cursor: pointer; font-weight: bold; font-size: 1.1em;
-    }
-    #control-panel { background-color: #34495e; padding: 15px; border-radius: 8px; margin-top: auto; }
-    .slider-container { margin-bottom: 20px; }
-    input[type="range"] { width: 100%; cursor: pointer; }
-    #auto-shoot-btn {
-      width: 100%; padding: 15px; background-color: #3498db; color: white;
-      border: none; border-radius: 5px; font-size: 1.2em; font-weight: bold;
-      cursor: pointer; transition: background-color 0.3s;
-    }
-    #auto-shoot-btn.active { background-color: #e67e22; }
-
-    #cash-out-btn {
-      width: 100%; padding: 15px; margin-top: 10px; background-color: #27ae60; color: white;
-      border: none; border-radius: 5px; font-size: 1.2em; font-weight: bold;
-      cursor: pointer; transition: background-color 0.3s;
-    }
-    #cash-out-btn:hover { background-color: #2ecc71; }
-    #cash-out-btn:disabled { background-color: #95a5a6; cursor: not-allowed; }
-
-    #game-board-wrapper { flex: 1; display: flex; justify-content: center; background-color: #1a252f; }
-    #game-board {
-      width: 100%; max-width: 650px; position: relative; background-color: #ecf0f1;
-      box-shadow: 0 0 20px rgba(0,0,0,0.8);
-    }
-    
-    #center-lcd {
-      position: absolute; top: 42%; left: 50%; transform: translate(-50%, -50%);
-      background-color: rgba(0, 0, 0, 0.85); border: 4px solid #7f8c8d;
-      border-radius: 10px; padding: 20px; text-align: center; z-index: 5;
-      width: 280px; pointer-events: none;
-    }
-    #status-display {
-      color: #2ecc71; font-weight: bold; font-size: 1.2em; margin-bottom: 10px;
-      height: 25px; transition: color 0.3s;
-    }
-    
-    .slots { display: flex; justify-content: space-between; }
-    
-    .slot {
-      width: 30%; height: 70px; background-color: #fff; color: #000;
-      font-size: 2.2em; border-radius: 5px; font-weight: bold;
-      display: flex; justify-content: center; align-items: center; overflow: hidden;
-    }
-    
-    #queue-display {
-      margin-top: 10px; color: #bdc3c7; font-size: 0.9em; letter-spacing: 2px;
-    }
-
-    /* 도움말 팝업(모달) 스타일 */
-    #help-modal {
-      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background-color: rgba(0,0,0,0.7); z-index: 100; justify-content: center; align-items: center;
-    }
-    #help-content {
-      background-color: #2c3e50; padding: 25px; border-radius: 10px; width: 400px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.8); line-height: 1.6;
-    }
-    #help-content h2 { margin-top: 0; color: #f1c40f; text-align: center; border-bottom: 1px solid #7f8c8d; padding-bottom: 10px;}
-    #help-content ul { padding-left: 20px; margin-bottom: 20px; }
-    #help-content li { margin-bottom: 12px; font-size: 0.95em; }
-    #help-content strong { color: #3498db; }
-    .kakuhen-text { color: #e74c3c !important; }
-    
-    #close-help-btn {
-      width: 100%; padding: 12px; background-color: #7f8c8d; color: white;
-      border: none; border-radius: 5px; font-size: 1.1em; font-weight: bold;
-      cursor: pointer; transition: background-color 0.3s;
-    }
-    #close-help-btn:hover { background-color: #95a5a6; }
-
-    /* 파이어베이스 로그인 모달 */
-    #login-modal {
-      display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background-color: rgba(26, 37, 47, 0.95); z-index: 999; justify-content: center; align-items: center;
-    }
-    #login-content {
-      background-color: #2c3e50; padding: 30px; border-radius: 10px; width: 300px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.8); text-align: center;
-    }
-    #login-content h2 { color: #f1c40f; margin-top: 0; margin-bottom: 20px; }
-    #login-content input {
-      width: 90%; padding: 10px; margin-bottom: 15px; border: none; border-radius: 5px;
-    }
-    .auth-btn {
-      width: 100%; padding: 12px; color: white; border: none; border-radius: 5px;
-      font-size: 1.1em; font-weight: bold; cursor: pointer; margin-bottom: 10px;
-    }
-    #login-submit-btn { background-color: #3498db; }
-    #signup-submit-btn { background-color: #e74c3c; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRPG 프로젝트</title>
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: #ffffff;
+            font-family: 'Malgun Gothic', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #2a2a2a;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            text-align: center;
+            width: 350px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #444;
+            background-color: #333;
+            color: #fff;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #5c3d99;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #7b52cc;
+        }
+        .hidden {
+            display: none !important;
+        }
+    </style>
 </head>
 <body>
 
-  <!-- 파이어베이스 로그인 모달 -->
-  <div id="login-modal">
-    <div id="login-content">
-      <h2>파칭코 로그인</h2>
-      <input type="email" id="email-input" placeholder="이메일 주소">
-      <input type="password" id="pw-input" placeholder="비밀번호 (6자리 이상)">
-      <button class="auth-btn" id="login-submit-btn">로그인</button>
-      <button class="auth-btn" id="signup-submit-btn">회원가입</button>
-    </div>
-  </div>
-
-  <div id="sidebar">
-    <div id="user-panel">
-      <span id="user-email-display">로그인 정보 없음</span>
-      <button id="logout-btn">로그아웃</button>
-    </div>
-
-    <div id="economy-panel">
-      <div class="stat-label">현재 구슬</div>
-      <div id="ball-count">500</div>
-      <button id="recharge-btn">100개 충전</button>
-    </div>
-
-    <button id="help-btn">📖 플레이 방법</button>
-
-    <div id="stats-panel">
-      <div class="stat-label">총 회전수</div>
-      <div id="total-spins" class="stat-value">0</div>
-      <div style="margin-top: 15px;"></div>
-      <div class="stat-label">현재 회전수</div>
-      <div id="current-spins" class="stat-value">0</div>
-    </div>
-
-    <div id="control-panel">
-      <div class="slider-container">
-        <label for="power" style="display:block; margin-bottom: 10px;">발사 파워: <span id="power-value">50</span>%</label>
-        <input type="range" id="power" min="1" max="100" value="50">
-      </div>
-      <button id="auto-shoot-btn">발사: OFF</button>
-      <button id="cash-out-btn">환금 및 저장</button>
-    </div>
-  </div>
-
-  <div id="game-board-wrapper">
-    <div id="game-board">
-      <div id="center-lcd">
-        <div id="status-display">대기중</div>
-        <div class="slots">
-          <div class="slot" id="slot-1">🍒</div>
-          <div class="slot" id="slot-2">🍒</div>
-          <div class="slot" id="slot-3">🍒</div>
+    <div class="container">
+        <!-- 1. 로그인 화면 -->
+        <div id="login-screen">
+            <h2>로그인</h2>
+            <p>서비스 이용을 위해 로그인해 주세요.</p>
+            <input type="email" id="email" placeholder="이메일">
+            <input type="password" id="password" placeholder="비밀번호">
+            <button id="btn-login">로그인</button>
+            <button id="btn-register" style="background-color: #444;">회원가입</button>
         </div>
-        <div id="queue-display">보류: ○ ○ ○ ○</div>
-      </div>
+
+        <!-- 2. 게임 타이틀 화면 -->
+        <div id="title-screen" class="hidden">
+            <h1>게임 타이틀</h1>
+            <p id="welcome-msg">사용자 정보</p>
+            <hr style="border: 0.5px solid #444; margin: 20px 0;">
+            <button id="btn-start" style="background-color: #d9534f;">게임 시작</button>
+            <button id="btn-logout" style="background-color: #555; margin-top: 5px;">로그아웃</button>
+        </div>
     </div>
-  </div>
 
-  <div id="help-modal">
-    <div id="help-content">
-      <h2>🎰 게임 플레이 방법</h2>
-      <ul>
-        <li><strong>발사 파워 조절:</strong> 슬라이더를 움직여 구슬이 튀어 나가는 궤도를 조절하세요.</li>
-        <li><strong>구슬 발사:</strong> '발사' 버튼을 켜면 구슬이 발사됩니다. (1발당 구슬 1개 소모)</li>
-        <li><strong>헤소(노란색 구멍):</strong> 중앙 하단 구멍에 구슬이 들어가면 룰렛이 회전합니다. (최대 4개 보류 가능)</li>
-        <li><strong>당첨(오오아타리):</strong> 룰렛 그림 3개가 일치하면 하단의 어태커(빨간색 구멍)가 20초간 열립니다.</li>
-        <li><strong>어태커 입상:</strong> 열린 어태커에 구슬이 들어가면 구멍 1개당 구슬 15개를 획득합니다!</li>
-        <li><strong class="kakuhen-text">확변(ST) 모드:</strong> 당첨 후 30회 동안 확률이 상승(1% → 3%)하는 연장전에 돌입합니다.</li>
-      </ul>
-      <button id="close-help-btn">닫기</button>
-    </div>
-  </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
-
-  <!-- 파이어베이스 SDK (모듈 방식) -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-
-    // ★ 여기에 본인의 Firebase 설정값을 붙여넣으세요 ★
+        // 본인의 파이어베이스 설정을 입력하세요.
    const firebaseConfig = {
   apiKey: "AIzaSyDlTRZ8FD3WrPyzNVxY8KumBBbwAEshwgk",
   authDomain: "paso-3aa60.firebaseapp.com",
@@ -232,450 +92,62 @@
 }; 
 
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
 
-    let currentUserUID = null;
+        const loginScreen = document.getElementById('login-screen');
+        const titleScreen = document.getElementById('title-screen');
+        const welcomeMsg = document.getElementById('welcome-msg');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
 
-    // DOM 요소
-    const loginModal = document.getElementById('login-modal');
-    const emailInput = document.getElementById('email-input');
-    const pwInput = document.getElementById('pw-input');
-    const loginBtn = document.getElementById('login-submit-btn');
-    const signupBtn = document.getElementById('signup-submit-btn');
-    const logoutBtn = document.getElementById('logout-btn');
-    const userEmailDisplay = document.getElementById('user-email-display');
-
-    // 회원가입
-    signupBtn.addEventListener('click', () => {
-      const email = emailInput.value;
-      const pw = pwInput.value;
-      createUserWithEmailAndPassword(auth, email, pw)
-        .then((userCredential) => {
-          alert("회원가입 완료! 500개의 구슬이 지급되었습니다.");
-        })
-        .catch((error) => {
-          alert("회원가입 실패: " + error.message);
+        // 회원가입
+        document.getElementById('btn-register').addEventListener('click', () => {
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            createUserWithEmailAndPassword(auth, email, password)
+                .then(() => {
+                    alert("회원가입이 완료되었습니다.");
+                })
+                .catch((error) => alert("회원가입 실패: " + error.message));
         });
-    });
 
-    // 로그인
-    loginBtn.addEventListener('click', () => {
-      const email = emailInput.value;
-      const pw = pwInput.value;
-      signInWithEmailAndPassword(auth, email, pw)
-        .catch((error) => {
-          alert("로그인 실패: 이메일과 비밀번호를 확인해주세요.");
+        // 로그인
+        document.getElementById('btn-login').addEventListener('click', () => {
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            signInWithEmailAndPassword(auth, email, password)
+                .then(() => {
+                    alert("로그인되었습니다.");
+                })
+                .catch((error) => alert("로그인 실패: " + error.message));
         });
-    });
 
-    // 로그아웃
-    logoutBtn.addEventListener('click', () => {
-      signOut(auth).then(() => {
-        location.reload(); // 로그아웃 시 페이지 새로고침
-      });
-    });
+        // 로그아웃
+        document.getElementById('btn-logout').addEventListener('click', () => {
+            signOut(auth).then(() => {
+                alert("로그아웃되었습니다.");
+            });
+        });
 
-    // 로그인 상태 감지
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        currentUserUID = user.uid;
-        userEmailDisplay.textContent = user.email;
-        loginModal.style.display = 'none'; // 로그인 모달 숨기기
+        // 게임 시작
+        document.getElementById('btn-start').addEventListener('click', () => {
+            alert("게임을 시작합니다.");
+        });
 
-        // Firestore에서 유저 구슬 데이터 가져오기
-        const userDocRef = doc(db, "users", currentUserUID);
-        const docSnap = await getDoc(userDocRef);
-
-        if (docSnap.exists()) {
-          balls = docSnap.data().balls;
-        } else {
-          // 첫 로그인 시 초기 구슬 500개 지급 및 DB 생성
-          balls = 500;
-          await setDoc(userDocRef, { balls: 500, email: user.email });
-        }
-        updateBalls(0); // 화면 갱신
-      } else {
-        loginModal.style.display = 'flex'; // 로그인 안 되어 있으면 모달 표시
-      }
-    });
-
-    // --- 도움말 팝업 로직 ---
-    const helpBtn = document.getElementById('help-btn');
-    const helpModal = document.getElementById('help-modal');
-    const closeHelpBtn = document.getElementById('close-help-btn');
-
-    helpBtn.addEventListener('click', () => { helpModal.style.display = 'flex'; });
-    closeHelpBtn.addEventListener('click', () => { helpModal.style.display = 'none'; });
-    helpModal.addEventListener('click', (e) => {
-      if (e.target === helpModal) helpModal.style.display = 'none';
-    });
-
-    // --- 기존 파칭코 로직 ---
-    const powerSlider = document.getElementById('power');
-    const powerValue = document.getElementById('power-value');
-    powerSlider.addEventListener('input', function() { powerValue.textContent = this.value; });
-
-    // 전역 변수로 관리되는 구슬
-    window.balls = 0; 
-    let autoShootInterval = null; 
-    let isShooting = false; 
-    const shootIntervalMs = 500; 
-
-    let totalSpins = 0; 
-    let currentSpins = 0; 
-
-    const ballCountDisplay = document.getElementById('ball-count');
-    const totalSpinsDisplay = document.getElementById('total-spins');
-    const currentSpinsDisplay = document.getElementById('current-spins');
-    const rechargeBtn = document.getElementById('recharge-btn');
-    const autoShootBtn = document.getElementById('auto-shoot-btn');
-    const cashOutBtn = document.getElementById('cash-out-btn'); 
-
-    function updateBalls(amount) {
-      balls += amount; 
-      ballCountDisplay.textContent = balls;
-    }
-
-    let spinQueue = 0; 
-    let isSpinning = false; 
-    let isKakuhen = false; 
-    let isAttackerOpen = false; 
-    
-    const PROB_NORMAL = 0.01; 
-    const PROB_KAKUHEN = 0.03; 
-
-    const normalSymbols = ["🍒", "🍉", "🍇", "🔔", "💎", "⭐", "7️⃣"];
-    const kakuhenSymbols = ["🔥", "💥", "⚡", "✨", "🤑", "🎰", "👑"];
-
-    const slot1 = document.getElementById('slot-1'); 
-    const slot2 = document.getElementById('slot-2'); 
-    const slot3 = document.getElementById('slot-3'); 
-    const statusDisplay = document.getElementById('status-display');
-    const queueDisplay = document.getElementById('queue-display');
-
-    function updateQueueUI() {
-      let qStr = "보류: ";
-      for(let i=1; i<=4; i++) { qStr += (i <= spinQueue) ? "● " : "○ "; }
-      queueDisplay.textContent = qStr;
-    }
-
-    function renderSymbol(element, symbol) {
-      if (symbol.includes('http') || symbol.includes('.png') || symbol.includes('.jpg') || symbol.includes('.gif')) {
-        element.innerHTML = `<img src="${symbol}" style="width: 80%; height: 80%; object-fit: contain;">`;
-      } else {
-        element.innerHTML = symbol;
-      }
-    }
-
-    function rollSlot(slotElement, duration) {
-      return new Promise(resolve => {
-        let timer = setInterval(() => {
-          const symbols = isKakuhen ? kakuhenSymbols : normalSymbols;
-          const randomSymbol = symbols[Math.floor(Math.random() * symbols.length)];
-          renderSymbol(slotElement, randomSymbol);
-        }, 50);
-        setTimeout(() => { clearInterval(timer); resolve(); }, duration);
-      });
-    }
-
-    async function processSpin() {
-      if (spinQueue <= 0) { 
-        isSpinning = false; 
-        statusDisplay.textContent = isKakuhen ? "🔥 확변 모드! 🔥" : "대기중"; 
-        return; 
-      }
-      
-      isSpinning = true;
-      spinQueue--; updateQueueUI();
-      
-      totalSpins++;
-      currentSpins++;
-      totalSpinsDisplay.textContent = totalSpins;
-      currentSpinsDisplay.textContent = currentSpins;
-
-      if (isKakuhen && currentSpins > 30) {
-        isKakuhen = false;
-        console.log("확변 종료! 일반 모드로 돌아갑니다.");
-      }
-
-      statusDisplay.textContent = isKakuhen ? "🔥 확변 회전중... 🔥" : "회전중...";
-      statusDisplay.style.color = "#fff";
-
-      const currentProb = isKakuhen ? PROB_KAKUHEN : PROB_NORMAL;
-      const symbols = isKakuhen ? kakuhenSymbols : normalSymbols;
-      
-      const isWin = Math.random() < currentProb;
-      const symLen = symbols.length;
-      
-      let n1, n2, n3;
-      let isReach = false;
-
-      if (isWin) {
-        n1 = n2 = n3 = Math.floor(Math.random() * symLen);
-        isReach = true;
-      } else {
-        n1 = Math.floor(Math.random() * symLen); 
-        isReach = Math.random() < 0.2; 
-        n3 = isReach ? n1 : Math.floor(Math.random() * symLen); 
-        n2 = Math.floor(Math.random() * symLen); 
-        while (n1 === n3 && n3 === n2) { n2 = Math.floor(Math.random() * symLen); }
-      }
-
-      rollSlot(slot1, 1000); 
-      rollSlot(slot3, 1500); 
-      rollSlot(slot2, isReach ? 4000 : 2000); 
-
-      await new Promise(r => setTimeout(r, 1000));
-      renderSymbol(slot1, symbols[n1]);
-
-      await new Promise(r => setTimeout(r, 500));
-      renderSymbol(slot3, symbols[n3]);
-
-      if (n1 === n3) {
-        statusDisplay.textContent = "🔥 리치! 🔥";
-        statusDisplay.style.color = "#e74c3c";
-      }
-
-      await new Promise(r => setTimeout(r, isReach ? 2500 : 500));
-      renderSymbol(slot2, symbols[n2]);
-
-      if (isWin) {
-        statusDisplay.textContent = "🎉 오오아타리! 🎉";
-        statusDisplay.style.color = "#f1c40f";
-        
-        currentSpins = 0; 
-        currentSpinsDisplay.textContent = currentSpins;
-
-        isAttackerOpen = true; 
-        attackerSensor.render.fillStyle = 'rgba(192, 57, 43, 1)'; 
-        
-        let timeLeft = 20;
-        let countdown = setInterval(() => {
-          timeLeft--;
-          if (timeLeft > 0) {
-            statusDisplay.textContent = `어태커 개방! (${timeLeft}초)`;
-          }
-        }, 1000);
-
-        await new Promise(r => setTimeout(r, 20000));
-
-        clearInterval(countdown);
-        isAttackerOpen = false; 
-        attackerSensor.render.fillStyle = 'rgba(231, 76, 60, 0.4)'; 
-
-        isKakuhen = true;
-        statusDisplay.textContent = "✨ 연속 확변 모드! ✨";
-        statusDisplay.style.color = "#e74c3c";
-        
-        await new Promise(r => setTimeout(r, 3000));
-
-      } else {
-        await new Promise(r => setTimeout(r, 1000)); 
-      }
-
-      processSpin();
-    }
-
-    const { Engine, Render, Runner, Bodies, Composite, Events, Vector, Body } = Matter;
-    const engine = Engine.create(); const world = engine.world;
-    const board = document.getElementById('game-board');
-    const width = board.clientWidth; const height = board.clientHeight;
-
-    const render = Render.create({
-      element: board, engine: engine,
-      options: { width: width, height: height, wireframes: false, background: 'transparent' }
-    });
-
-    Render.run(render); const runner = Runner.create(); Runner.run(runner, engine);
-
-    const cx = width / 2; const rouletteY = height * 0.42; 
-
-    const wallOptions = { isStatic: true, render: { fillStyle: '#2c3e50' } };
-    const topWall = Bodies.rectangle(cx, -50, width, 100, wallOptions); 
-    const leftWall = Bodies.rectangle(-10, height/2, 20, height, wallOptions);
-    const rightWall = Bodies.rectangle(width + 10, height/2, 20, height, wallOptions);
-    
-    const groundAngle = Math.PI / 18;
-    const groundLeft = Bodies.rectangle(cx - 230, height - 30, 360, 60, {
-      isStatic: true, angle: groundAngle, render: { fillStyle: '#2c3e50' }
-    });
-    const groundRight = Bodies.rectangle(cx + 230, height - 30, 360, 60, {
-      isStatic: true, angle: -groundAngle, render: { fillStyle: '#2c3e50' }
-    });
-    
-    const attackerSensor = Bodies.rectangle(cx, height - 15, 100, 30, {
-      isStatic: true, isSensor: true, label: 'attacker', render: { fillStyle: 'rgba(231, 76, 60, 0.4)' }
-    });
-
-    const lcdCircleRadius = 175;
-    const lcdCircle = Bodies.circle(cx, rouletteY, lcdCircleRadius, {
-      isStatic: true, render: { fillStyle: 'transparent', strokeStyle: '#7f8c8d', lineWidth: 5 }
-    });
-
-    const hesoY = height - 120; 
-    const hesoSensor = Bodies.rectangle(cx, hesoY, 50, 30, {
-      isStatic: true, isSensor: true, label: 'heso', render: { fillStyle: '#f1c40f' }
-    });
-
-    Composite.add(world, [topWall, leftWall, rightWall, groundLeft, groundRight, attackerSensor, lcdCircle, hesoSensor]);
-
-    const pinOptions = { isStatic: true, render: { fillStyle: '#7f8c8d' } };
-    
-    let bgPins = [];
-    function addSymPins(dx, dy) {
-      bgPins.push(Bodies.circle(cx - dx, rouletteY + dy, 4, pinOptions)); 
-      bgPins.push(Bodies.circle(cx + dx, rouletteY + dy, 4, pinOptions)); 
-    }
-
-    for (let a = 0; a < Math.PI; a += 0.35) {
-      let px1 = cx + 220 * Math.cos(a + Math.PI); let py1 = rouletteY + 220 * Math.sin(a + Math.PI);
-      if (py1 > 50) bgPins.push(Bodies.circle(px1, py1, 4, pinOptions));
-      
-      let px2 = cx + 270 * Math.cos(a + Math.PI); let py2 = rouletteY + 270 * Math.sin(a + Math.PI);
-      if (py2 > 50) bgPins.push(Bodies.circle(px2, py2, 4, pinOptions));
-    }
-
-    addSymPins(180, -90); addSymPins(120, -30); addSymPins(240, -20);
-    addSymPins(160, 40);  addSymPins(260, 50);  addSymPins(200, 90);
-    addSymPins(250, 120); addSymPins(150, 140);
-    
-    bgPins = bgPins.filter(pin => {
-      const dx = pin.position.x - cx; const dy = pin.position.y - rouletteY;
-      const isOutsideRoulette = Math.sqrt(dx * dx + dy * dy) > lcdCircleRadius + 10;
-      const isTrappedZone = pin.position.y > hesoY - 80 && (pin.position.x < cx - 80 || pin.position.x > cx + 80);
-      return isOutsideRoulette && !isTrappedZone;
-    });
-
-    let specialPins = [];
-    specialPins.push(Bodies.circle(cx - 22, hesoY - 40, 4, pinOptions));
-    specialPins.push(Bodies.circle(cx + 22, hesoY - 40, 4, pinOptions));
-    specialPins.push(Bodies.circle(cx, hesoY - 65, 4, pinOptions));      
-
-    const guideStartX = cx - 220; const guideStartY = rouletteY + 110; 
-    const guideEndX = cx - 40;    const guideEndY = hesoY - 25;
-    const steps = 25; 
-    for (let i = 0; i <= steps; i++) {
-      if (i >= 18 && i <= 21) continue;
-      let t = i / steps;
-      let px = guideStartX + (guideEndX - guideStartX) * t;
-      let py = guideStartY + (guideEndY - guideStartY) * t;
-      specialPins.push(Bodies.circle(px, py, 4, pinOptions)); 
-      specialPins.push(Bodies.circle(cx + (cx - px), py, 4, pinOptions)); 
-    }
-
-    let pins = bgPins.concat(specialPins);
-    Composite.add(world, pins);
-
-    function createBall(power) {
-      const randomRestitution = 0.3 + (Math.random() * 0.15); 
-      const randomFriction = 0.001 + (Math.random() * 0.002);
-      
-      const startX = width - 30 + (Math.random() - 0.5) * 4;
-      const startY = 50 + (Math.random() - 0.5) * 4;
-
-      const ball = Bodies.circle(startX, startY, 8, {
-        restitution: randomRestitution, friction: randomFriction, label: 'ball',
-        render: { fillStyle: '#bdc3c7', strokeStyle: '#7f8c8d', lineWidth: 1 }
-      });
-      
-      const powerVariance = (Math.random() - 0.5) * 4; 
-      let finalPower = parseFloat(power) + powerVariance;
-      if (finalPower < 1) finalPower = 1;
-
-      const forceX = (finalPower / 100) * -0.024; 
-      const forceY = -0.009 + (Math.random() - 0.5) * 0.001;
-      
-      Body.applyForce(ball, ball.position, { x: forceX, y: forceY }); 
-      
-      setTimeout(() => { Composite.remove(world, ball); }, 30000);
-      Composite.add(world, ball);
-    }
-
-    function stopShooting() {
-      isShooting = false; clearInterval(autoShootInterval);
-      autoShootBtn.textContent = '발사: OFF'; autoShootBtn.classList.remove('active');
-    }
-
-    autoShootBtn.addEventListener('click', function() {
-      if (isShooting) { stopShooting(); return; }
-      if (balls <= 0) return;
-      isShooting = true; this.textContent = '발사: ON'; this.classList.add('active');
-
-      autoShootInterval = setInterval(function() {
-        if (balls > 0) { updateBalls(-1); createBall(powerSlider.value); 
-        } else {
-          stopShooting(); rechargeBtn.style.display = 'block';
-          autoShootBtn.style.backgroundColor = '#95a5a6'; autoShootBtn.disabled = true;
-        }
-      }, shootIntervalMs);
-    });
-
-    rechargeBtn.addEventListener('click', function() {
-      updateBalls(100); rechargeBtn.style.display = 'none'; 
-      autoShootBtn.disabled = false; autoShootBtn.style.backgroundColor = '';
-    });
-
-    // --- 수정한 부분: 파이어베이스 데이터 전송 로직 ---
-    cashOutBtn.addEventListener('click', async function() {
-      if (!currentUserUID) {
-        alert("로그인이 필요합니다.");
-        return;
-      }
-      
-      if (confirm("현재 구슬 기록을 저장하시겠습니까?")) {
-        const nickname = prompt("저장할 닉네임을 입력하세요", "익명 유저");
-        if(!nickname) return; 
-
-        cashOutBtn.disabled = true;
-        cashOutBtn.textContent = "저장 중...";
-
-        try {
-          const userDocRef = doc(db, "users", currentUserUID);
-          // 닉네임과 구슬 수를 업데이트
-          await setDoc(userDocRef, { 
-            balls: balls, 
-            nickname: nickname,
-            lastSaved: new Date().toISOString()
-          }, { merge: true });
-          
-          alert(`[저장 완료]\n닉네임: ${nickname}\n보유 구슬: ${balls}개\n서버에 안전하게 저장되었습니다.`);
-        } catch (error) {
-          console.error("Error saving document: ", error);
-          alert("데이터 저장에 실패했습니다.");
-        } finally {
-          cashOutBtn.disabled = false;
-          cashOutBtn.textContent = "환금 및 저장";
-        }
-      }
-    });
-    // ------------------------------------
-
-    Events.on(engine, 'collisionStart', (event) => {
-      event.pairs.forEach((pair) => {
-        const labels = [pair.bodyA.label, pair.bodyB.label];
-        
-        if (labels.includes('ball') && labels.includes('heso')) {
-          const ball = pair.bodyA.label === 'ball' ? pair.bodyA : pair.bodyB;
-          Composite.remove(world, ball); 
-          
-          if (spinQueue < 4) {
-            spinQueue++;
-            updateQueueUI();
-            if (!isSpinning) processSpin();
-          }
-        }
-        
-        if (labels.includes('ball') && labels.includes('attacker')) {
-          const ball = pair.bodyA.label === 'ball' ? pair.bodyA : pair.bodyB;
-          Composite.remove(world, ball); 
-          if (isAttackerOpen) {
-            updateBalls(15);
-          }
-        }
-      });
-    });
-  </script>
+        // 인증 상태 감지
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                loginScreen.classList.add('hidden');
+                titleScreen.classList.remove('hidden');
+                welcomeMsg.innerText = `접속 계정: ${user.email}`;
+            } else {
+                loginScreen.classList.remove('hidden');
+                titleScreen.classList.add('hidden');
+                emailInput.value = "";
+                passwordInput.value = "";
+            }
+        });
+    </script>
 </body>
 </html>
