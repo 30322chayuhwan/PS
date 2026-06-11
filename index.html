@@ -2,19 +2,23 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>도서관 판정 수정 테스트</title>
+  <title>도서관 연속 클릭 테스트</title>
 </head>
 <body style="background-color: #222; padding: 50px; display: flex; justify-content: center;">
 
   <div id="libraryPhysicsGame" style="text-align:center; padding:20px; background:#19191e; color:#fff; border-radius:12px; max-width:420px; font-family:sans-serif; box-shadow:0 6px 20px rgba(0,0,0,0.4);">
-    <h3 style="color:#ffa726; margin-top:0; font-size:18px;">📚 도서관: 이공간의 책 탑 (판정 수정본)</h3>
+    <h3 style="color:#ffa726; margin-top:0; font-size:18px;">📚 도서관: 이공간의 책 탑 (연속 피지컬)</h3>
     
-    <div style="font-style:italic; color:#dddddd; font-size:13px; line-height:1.6; text-align:left; padding:10px; background:rgba(255,255,255,0.05); border-radius:6px; margin-bottom:15px;">
-      정중앙 <b>초록색 영역</b>에 빨간 바가 들어왔을 때 아래 버튼을 누르세요. (판정 범위를 넉넉하게 수정했습니다.)
+    <!-- 실시간 상태 피드백 메시지창 -->
+    <div id="gameStatusMessage" style="min-height: 40px; color:#aaa; font-size:14px; font-weight:bold; padding:8px; margin-bottom:10px; background:rgba(0,0,0,0.2); border-radius:4px; display:flex; align-items:center; justify-content:center;">
+      정중앙 초록색 구역을 노려 연속으로 빼내세요!
     </div>
     
-    <div style="position:relative; width:100%; height:30px; background:#444; border-radius:15px; margin:20px 0; overflow:hidden; border:2px solid #666;">
-      <div style="position:absolute; left:35%; width:30%; height:100%; background:#2e7d32; box-shadow: inset 0 0 10px rgba(0,0,0,0.5);"></div>
+    <!-- 타이밍 게이지 바 -->
+    <div style="position:relative; width:100%; height:30px; background:#444; border-radius:15px; margin:15px 0; overflow:hidden; border:2px solid #666;">
+      <!-- 안전 구역 (초록색) -->
+      <div style="position:absolute; left:38%; width:24%; height:100%; background:#2e7d32; box-shadow: inset 0 0 10px rgba(0,0,0,0.5);"></div>
+      <!-- 움직이는 게이지 핀 -->
       <div id="gaugePin" style="position:absolute; left:0%; width:10px; height:100%; background:#d32f2f; box-shadow:0 0 12px #ff1744;"></div>
     </div>
     
@@ -22,43 +26,68 @@
       📖 빨간 수첩 추출 상태: <span id="successCount" style="color:#81c784; font-weight:bold;">0</span> / 3번 성공
     </div>
     
-    <button id="actionBtn" onclick="pullNotebook()" style="background:#ffa726; color:#111; padding:14px 20px; border:none; border-radius:6px; font-weight:bold; font-size:15px; cursor:pointer; width:100%; transition:all 0.1s; active { transform: scale(0.98); }">⚠️ 지금 수첩 잡아당기기!</button>
+    <!-- 실시간 타격감을 위해 엔터나 마우스 클릭을 딜레이 없이 즉시 수용 -->
+    <button id="actionBtn" onclick="pullNotebook()" style="background:#ffa726; color:#111; padding:14px 20px; border:none; border-radius:6px; font-weight:bold; font-size:15px; cursor:pointer; width:100%; user-select:none;">⚠️ 지금 수첩 잡아당기기!</button>
   </div>
 
   <script>
     let pin = document.getElementById('gaugePin');
+    let msgBox = document.getElementById('gameStatusMessage');
     let currentLeft = 0;
     let direction = 1;
     let successes = 0;
+    let isGameOver = false;
     
-    // 이동 속도와 부드러움을 위해 수치 조절 (폭을 1.5로 낮추고 프레임을 매끄럽게 변경)
+    // 부드러운 왕복 운동 루프
     let pinInterval = setInterval(() => {
-      currentLeft += (1.8 * direction);
+      if(isGameOver) return;
+      currentLeft += (2.2 * direction);
       if (currentLeft >= 97) { currentLeft = 97; direction = -1; }
       if (currentLeft <= 0) { currentLeft = 0; direction = 1; }
       pin.style.left = currentLeft + '%';
     }, 16);
 
     function pullNotebook() {
-      // 판정 범위를 35% ~ 65%로 넓혀서 마우스 클릭 딜레이를 커버합니다.
-      if (currentLeft >= 35 && currentLeft <= 65) {
+      if(isGameOver) return;
+
+      // 판정 범위 확인 (38% ~ 62%)
+      if (currentLeft >= 38 && currentLeft <= 62) {
         successes++;
         document.getElementById('successCount').textContent = successes;
         
         if (successes === 3) {
-          clearInterval(pinInterval);
+          isGameOver = true;
+          msgBox.style.color = "#81c784";
+          msgBox.innerHTML = "🎉 성공! 탑을 무너뜨리지 않고 수첩을 뺐습니다!";
           document.getElementById('actionBtn').disabled = true;
-          alert("📚 성공!\n\n탑을 무너뜨리지 않고 새빨간 가죽 수첩을 안전하게 쏙 빼냈습니다!");
+          
+          // 최종 클리어 소식만 기분 좋게 팝업으로 알림
+          setTimeout(() => { alert("📚 수첩을 열자 [도서관 단서]가 나타났습니다!"); }, 100);
         } else {
-          alert("✔️ 세이프! 성공입니다. 연속해서 집중하세요!");
+          // 흐름 끊지 않고 텍스트만 슥 변경해서 연속 입력 가능하게 유도
+          msgBox.style.color = "#81c784";
+          msgBox.innerHTML = "✔️ 세이프! 연속해서 다음 타이밍을 노리세요!";
         }
       } else {
-        // 실패 시 리셋
-        alert("❌ 실패! 책 탑이 와르르 무너졌습니다.\n(무이: ……어라, 나 잠깐 졸았나?)");
-        successes = 0;
-        document.getElementById('successCount').textContent = "0";
-        currentLeft = 0;
-        direction = 1;
+        // 실패 시: 게이지를 멈추고 게임오버 연출을 텍스트로 띄움
+        isGameOver = true;
+        msgBox.style.color = "#ff1744";
+        msgBox.innerHTML = "❌ 콰르릉! 책 탑이 붕괴되었습니다.";
+        document.getElementById('actionBtn').disabled = true;
+
+        // 게임오버 및 부활 루프 대사는 연출상 팝업 처리 후 리셋
+        setTimeout(() => {
+          alert("무이: '……어라. 나 방금 도서관 문 열면서 잠깐 졸았나? 귀가 되게 멍멍하네. 다시 하자.'");
+          // 초기화 후 복구
+          successes = 0;
+          document.getElementById('successCount').textContent = "0";
+          msgBox.style.color = "#aaa";
+          msgBox.innerHTML = "정중앙 초록색 구역을 노려 연속으로 빼내세요!";
+          currentLeft = 0;
+          direction = 1;
+          isGameOver = false;
+          document.getElementById('actionBtn').disabled = false;
+        }, 200);
       }
     }
   </script>
