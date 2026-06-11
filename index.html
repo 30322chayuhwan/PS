@@ -2,51 +2,55 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>도서관 심플 블록 퍼즐</title>
+  <title>도서관 블록 퍼즐 (아래서부터 카운트)</title>
 </head>
 <body style="background-color: #222; padding: 50px; display: flex; justify-content: center; font-family: sans-serif;">
 
   <div id="libraryVisualPuzzle" style="text-align:center; padding:20px; background:#19191e; color:#fff; border-radius:12px; max-width:540px; box-shadow:0 6px 20px rgba(0,0,0,0.4);">
     <h3 style="color:#ffa726; margin-top:0; font-size:18px;">📚 도서관: 이공간의 거대 서가</h3>
     
+    <!-- 빨간 수첩 힌트 -->
     <div style="background:#b71c1c; color:#fff; padding:10px; border-radius:8px; margin-bottom:15px; border:2px solid #ff8a80;">
       <span style="font-size:12px; color:#ff8a80; font-weight:bold;">📕 새빨간 가죽 수첩의 메모 (책장 - 칸 - 번째)</span><br>
       <span style="font-family:monospace; font-size:22px; font-weight:bold; letter-spacing: 2px;">[ 2 - 3 - 4 ]</span>
     </div>
 
     <div style="font-style:italic; color:#ccc; font-size:13px; line-height:1.5; margin-bottom:20px;">
-      "책 탑이 무너지지 않게, 수첩에 적힌 좌표의 책(블록)을 정확히 찾아 클릭하자."
+      "책 탑이 무너지지 않게, 수첩에 적힌 좌표의 책을 정확히 찾아 클릭하자.<br>
+      <b>(주의: 칸은 맨 아래 바닥에서부터 위로 세어 올라간다.)</b>"
     </div>
     
+    <!-- 심플 블록 책장 구역 -->
     <div id="bookcaseContainer" style="display:flex; justify-content:space-between; gap: 15px; background:#111; padding:15px; border-radius:8px; border:1px solid #333;">
-      </div>
+      <!-- JS가 여기에 블록형 책장을 생성합니다 -->
+    </div>
   </div>
 
   <script>
-    // 책장 UI를 동적으로 생성하는 함수 (심플 블록 디자인)
+    // 책장 UI 동적 생성
     function renderBookcases() {
       const container = document.getElementById('bookcaseContainer');
       let htmlString = "";
 
-      // 총 3개의 책장 생성
+      // 총 3개의 책장 생성 (왼쪽에서 오른쪽으로 1~3)
       for (let bc = 1; bc <= 3; bc++) {
         htmlString += `<div style="background:#2a2a2a; padding:10px; border:2px solid #444; border-radius:4px; width:130px;">`;
         htmlString += `<div style="text-align:center; color:#888; font-size:12px; font-weight:bold; margin-bottom:12px;">[ ${bc}번 책장 ]</div>`;
         
-        // 각 책장마다 3개의 층(칸) 생성
-        for (let shelf = 1; shelf <= 3; shelf++) {
+        // ★ 핵심 변경: 위에서 아래로 그리기 때문에, 숫자는 3 -> 2 -> 1 순서로 내려오게 만듭니다.
+        // 이렇게 하면 화면상 맨 아래가 '1번째 칸', 맨 위가 '3번째 칸'이 됩니다.
+        for (let shelf = 3; shelf >= 1; shelf--) {
           htmlString += `<div style="display:flex; justify-content:center; gap:6px; border-bottom:4px solid #555; padding-bottom:4px; margin-bottom:12px;">`;
           
-          // 각 칸마다 5권의 책(블록) 생성
+          // 각 칸마다 5권의 책 생성 (왼쪽에서 오른쪽으로 1~5)
           for (let book = 1; book <= 5; book++) {
-            // 심플한 단색 회색 블록
             htmlString += `
               <div 
                 onclick="attemptPullBook(${bc}, ${shelf}, ${book})" 
                 style="width:16px; height:28px; background:#666; cursor:pointer; border-radius:2px; transition: background 0.1s;"
                 onmouseover="this.style.background='#fff';"
                 onmouseout="this.style.background='#666';"
-                title="${bc}번 책장, ${shelf}번째 칸, ${book}번째 책"
+                title="${bc}번 책장, 아래서부터 ${shelf}번째 칸, 왼쪽에서 ${book}번째 책"
               ></div>`;
           }
           htmlString += `</div>`; // 칸 닫기
@@ -56,13 +60,13 @@
       container.innerHTML = htmlString;
     }
 
-    // 책을 클릭했을 때 실행되는 함수 (확인창 포함)
+    // 책 클릭 시 실행 함수
     function attemptPullBook(bc, shelf, book) {
-      // 1. 확인창 띄우기
-      const isConfirmed = confirm(`⚠️ 정말 [ ${bc}번 책장, 위에서 ${shelf}번째 칸, 왼쪽에서 ${book}번째 책 ]을 꺼내시겠습니까?\n\n(잘못된 위치를 건드리면 책 탑이 무너집니다!)`);
+      // 1. 확인창 띄우기 (텍스트도 '아래서부터'로 변경)
+      const isConfirmed = confirm(`⚠️ 정말 [ ${bc}번 책장, 아래서부터 ${shelf}번째 칸, 왼쪽에서 ${book}번째 책 ]을 꺼내시겠습니까?\n\n(잘못된 위치를 건드리면 책 탑이 무너집니다!)`);
       
       if (isConfirmed) {
-        // 정답 판정 (2번 책장, 3번째 칸, 4번째 책)
+        // 정답 판정 (2번 책장, 아래서 3번째 칸, 4번째 책)
         if (bc === 2 && shelf === 3 && book === 4) {
           alert("📚 잠금 해제 성공!\n\n무이가 조심스럽게 해당 블록을 꺼냈습니다.\n속이 칼로 파여 있는 가짜 책이군요! 그 안에서 최종 범인을 특정할 수 있는 [도서관 단서]를 발견했습니다.");
         } else {
@@ -73,7 +77,7 @@
       }
     }
 
-    // 페이지가 로딩되면 책장을 그립니다.
+    // 페이지 로딩 시 책장 렌더링
     renderBookcases();
   </script>
 
