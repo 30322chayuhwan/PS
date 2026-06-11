@@ -2,83 +2,88 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>도서관 블록 퍼즐 (아래서부터 카운트)</title>
+  <title>컴퓨터실 모스부호 퍼즐 테스트</title>
 </head>
-<body style="background-color: #222; padding: 50px; display: flex; justify-content: center; font-family: sans-serif;">
+<body style="background-color: #111; padding: 50px; display: flex; justify-content: center; font-family: sans-serif;">
 
-  <div id="libraryVisualPuzzle" style="text-align:center; padding:20px; background:#19191e; color:#fff; border-radius:12px; max-width:540px; box-shadow:0 6px 20px rgba(0,0,0,0.4);">
-    <h3 style="color:#ffa726; margin-top:0; font-size:18px;">📚 도서관: 이공간의 거대 서가</h3>
+  <div id="computerRoomPuzzle" style="text-align:center; padding:20px; background:#1a1c1e; color:#fff; border-radius:12px; max-width:460px; box-shadow:0 6px 20px rgba(0,0,0,0.8); border: 1px solid #333;">
+    <h3 style="color:#29b6f6; margin-top:0; font-size:18px;">💻 컴퓨터실: 홀로 켜진 모니터</h3>
     
-    <!-- 빨간 수첩 힌트 -->
-    <div style="background:#b71c1c; color:#fff; padding:10px; border-radius:8px; margin-bottom:15px; border:2px solid #ff8a80;">
-      <span style="font-size:12px; color:#ff8a80; font-weight:bold;">📕 새빨간 가죽 수첩의 메모 (책장 - 칸 - 번째)</span><br>
-      <span style="font-family:monospace; font-size:22px; font-weight:bold; letter-spacing: 2px;">[ 2 - 3 - 4 ]</span>
+    <div style="background:#0a0a0a; padding:15px; border-radius:8px; margin-bottom:15px; border:1px solid #222; position: relative; overflow: hidden;">
+      <div id="ceilingLight" style="width:30px; height:30px; background:#444; border-radius:50%; margin:0 auto 10px auto; transition: background 0.05s, box-shadow 0.05s;"></div>
+      <span style="font-size:12px; color:#777;">💡 머리 위 전등이 기괴한 리듬으로 깜빡이고 있다...</span>
     </div>
 
-    <div style="font-style:italic; color:#ccc; font-size:13px; line-height:1.5; margin-bottom:20px;">
-      "책 탑이 무너지지 않게, 수첩에 적힌 좌표의 책을 정확히 찾아 클릭하자.<br>
-      <b>(주의: 칸은 맨 아래 바닥에서부터 위로 세어 올라간다.)</b>"
+    <div style="font-style:italic; color:#ccc; font-size:13px; line-height:1.6; text-align:left; padding:10px; background:rgba(255,255,255,0.05); border-radius:6px; margin-bottom:15px;">
+      "화면엔 숫자 비밀번호를 대라고 나오고, 머리 위 전등은 미친 듯이 깜빡거리고…….<br>
+      잠깐, 이 리듬... 밀리터리 영상에서 본 모스부호 숫자랑 똑같잖아. 기억을 더듬어서 노트 구석에 적어둔 표랑 비교해 보자."
+    </div>
+
+    <div style="background:#fcf8e3; font-size:12px; color:#333; padding:12px; border-radius:6px; text-align:left; margin-bottom:15px; font-family: 'Courier New', monospace; border: 1px dashed #d6e9c6; box-shadow: 2px 2px 5px rgba(0,0,0,0.15);">
+      <span style="font-weight:bold; color:#000; border-bottom:1px solid #ccc; display:block; padding-bottom:4px; margin-bottom:6px;">📝 무이가 끄적인 메모 (모스부호 숫자)</span>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px 15px;">
+        <div>1: • — — — —</div>  <div>6: — • • • •</div>
+        <div>2: • • — — —</div>  <div style="font-weight:bold; color:#d32f2f;">7: — — • • •</div>
+        <div style="font-weight:bold; color:#d32f2f;">3: • • • — —</div>  <div>8: — — — • •</div>
+        <div>4: • • • • —</div>  <div>9: — — — — •</div>
+        <div>5: • • • • •</div>  <div>0: — — — — —</div>
+      </div>
+      <div style="font-size:11px; color:#666; margin-top:8px; font-style:italic; border-top:1px dashed #ccc; padding-top:4px;">
+        * (•)는 짧은 깜빡임, (—)는 긴 깜빡임 / 숫자 사이엔 긴 휴식이 있다.
+      </div>
     </div>
     
-    <!-- 심플 블록 책장 구역 -->
-    <div id="bookcaseContainer" style="display:flex; justify-content:space-between; gap: 15px; background:#111; padding:15px; border-radius:8px; border:1px solid #333;">
-      <!-- JS가 여기에 블록형 책장을 생성합니다 -->
-    </div>
+    <input type="text" id="comInput" placeholder="비밀번호 입력" style="width:150px; padding:10px; text-align:center; font-size:16px; margin-bottom:12px; border:1px solid #444; background:#222; color:#fff; border-radius:4px; letter-spacing: 2px;"><br>
+    <button onclick="checkMorsePassword()" style="background:#29b6f6; color:#111; padding:12px 20px; border:none; border-radius:4px; font-size:14px; cursor:pointer; font-weight:bold; width:174px; transition: 0.2s;">엔터 (Enter)</button>
   </div>
 
   <script>
-    // 책장 UI 동적 생성
-    function renderBookcases() {
-      const container = document.getElementById('bookcaseContainer');
-      let htmlString = "";
-
-      // 총 3개의 책장 생성 (왼쪽에서 오른쪽으로 1~3)
-      for (let bc = 1; bc <= 3; bc++) {
-        htmlString += `<div style="background:#2a2a2a; padding:10px; border:2px solid #444; border-radius:4px; width:130px;">`;
-        htmlString += `<div style="text-align:center; color:#888; font-size:12px; font-weight:bold; margin-bottom:12px;">[ ${bc}번 책장 ]</div>`;
-        
-        // ★ 핵심 변경: 위에서 아래로 그리기 때문에, 숫자는 3 -> 2 -> 1 순서로 내려오게 만듭니다.
-        // 이렇게 하면 화면상 맨 아래가 '1번째 칸', 맨 위가 '3번째 칸'이 됩니다.
-        for (let shelf = 3; shelf >= 1; shelf--) {
-          htmlString += `<div style="display:flex; justify-content:center; gap:6px; border-bottom:4px solid #555; padding-bottom:4px; margin-bottom:12px;">`;
-          
-          // 각 칸마다 5권의 책 생성 (왼쪽에서 오른쪽으로 1~5)
-          for (let book = 1; book <= 5; book++) {
-            htmlString += `
-              <div 
-                onclick="attemptPullBook(${bc}, ${shelf}, ${book})" 
-                style="width:16px; height:28px; background:#666; cursor:pointer; border-radius:2px; transition: background 0.1s;"
-                onmouseover="this.style.background='#fff';"
-                onmouseout="this.style.background='#666';"
-                title="${bc}번 책장, 아래서부터 ${shelf}번째 칸, 왼쪽에서 ${book}번째 책"
-              ></div>`;
-          }
-          htmlString += `</div>`; // 칸 닫기
-        }
-        htmlString += `</div>`; // 책장 닫기
-      }
-      container.innerHTML = htmlString;
-    }
-
-    // 책 클릭 시 실행 함수
-    function attemptPullBook(bc, shelf, book) {
-      // 1. 확인창 띄우기 (텍스트도 '아래서부터'로 변경)
-      const isConfirmed = confirm(`⚠️ 정말 [ ${bc}번 책장, 아래서부터 ${shelf}번째 칸, 왼쪽에서 ${book}번째 책 ]을 꺼내시겠습니까?\n\n(잘못된 위치를 건드리면 책 탑이 무너집니다!)`);
+    // 전등 깜빡임 애니메이션 루프 (실시간 구동)
+    const light = document.getElementById('ceilingLight');
+    
+    // 모스부호 3과 7의 패턴 정의 (on: 불 켜짐, false: 불 꺼짐 / time: 지속 시간 ms)
+    const morsePattern = [
+      // 숫자 3 (• • • — —)
+      {on: true, time: 200}, {on: false, time: 200}, // •
+      {on: true, time: 200}, {on: false, time: 200}, // •
+      {on: true, time: 200}, {on: false, time: 600}, // • (문자 간격)
+      {on: true, time: 600}, {on: false, time: 200}, // —
+      {on: true, time: 600}, {on: false, time: 1500},// — (숫자 3 완료 후 다음 숫자까지 긴 휴식)
       
-      if (isConfirmed) {
-        // 정답 판정 (2번 책장, 아래서 3번째 칸, 4번째 책)
-        if (bc === 2 && shelf === 3 && book === 4) {
-          alert("📚 잠금 해제 성공!\n\n무이가 조심스럽게 해당 블록을 꺼냈습니다.\n속이 칼로 파여 있는 가짜 책이군요! 그 안에서 최종 범인을 특정할 수 있는 [도서관 단서]를 발견했습니다.");
-        } else {
-          // 오답 시 붕괴 연출
-          alert("❌ 콰르르릉-!\n\n엉뚱한 위치를 건드리는 순간 균형이 깨지며 수천 권의 책들이 폭포처럼 무이를 덮칩니다. 시야가 완전히 암전됩니다.");
-          alert("무이: '……어라. 나 방금 도서관 문 열면서 잠깐 졸았나? 귀가 되게 멍멍하네. 아무튼 빨리 저 책 탑 아래에 떨어진 빨간 수첩을 주워서 좌표를 다시 확인하자.'");
-        }
+      // 숫자 7 (— — • • •)
+      {on: true, time: 600}, {on: false, time: 200}, // —
+      {on: true, time: 600}, {on: false, time: 600}, // — (문자 간격)
+      {on: true, time: 200}, {on: false, time: 200}, // •
+      {on: true, time: 200}, {on: false, time: 200}, // •
+      {on: true, time: 200}, {on: false, time: 3500} // • (패턴 종료 후 아주 긴 휴식 반복)
+    ];
+    
+    let patternIndex = 0;
+    function runLightPattern() {
+      let step = morsePattern[patternIndex];
+      if (step.on) {
+        light.style.background = "#fffde7";
+        light.style.boxShadow = "0 0 20px #fff59d, inset 0 0 10px #ffffff";
+      } else {
+        light.style.background = "#444";
+        light.style.boxShadow = "none";
+      }
+      patternIndex = (patternIndex + 1) % morsePattern.length;
+      setTimeout(runLightPattern, step.time); // 다음 패턴 예약
+    }
+    runLightPattern(); // 전등 루프 즉시 작동 시작
+
+    function checkMorsePassword() {
+      const userAnswer = document.getElementById('comInput').value.trim();
+      
+      // 정답: 37
+      if (userAnswer === "37") {
+        alert("💻 잠금 해제 성공!\n\n모니터가 '징-' 하는 소리와 함께 메인 화면으로 넘어갑니다.\n바탕화면에 덩그러니 놓인 텍스트 파일을 열자, 최종 범인을 특정할 수 있는 [컴퓨터실 단서]가 나타납니다!\n무이는 이 결정적 힌트를 수첩에 황급히 받아 적었습니다.");
+      } else {
+        alert("❌ 화면에 붉은 글씨로 '인증 실패: 올바르지 않은 접근입니다' 문구가 뜹니다.\n전등 불빛의 깜빡이는 횟수와 길이를 다시 유심히 관찰해 보세요.");
+        document.getElementById('comInput').value = ""; // 오답 시 입력창 비우기
       }
     }
-
-    // 페이지 로딩 시 책장 렌더링
-    renderBookcases();
   </script>
 
 </body>
