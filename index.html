@@ -1,119 +1,272 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>학교 괴담 방탈출: 인트로</title>
-  <style>
-    body { background-color: #111; color: #eee; font-family: 'Malgun Gothic', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-    .screen { display: none; width: 100%; max-width: 500px; background: #1e1e1e; padding: 30px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); text-align: center; border: 1px solid #333; }
-    .active { display: block; }
-    input[type="text"] { width: 60%; padding: 10px; margin-bottom: 15px; background: #222; border: 1px solid #555; color: #fff; text-align: center; border-radius: 6px; font-size: 16px; }
-    button { background: #5c6bc0; color: #fff; border: none; padding: 12px 20px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s; margin: 5px; }
-    button:hover { background: #3f51b5; transform: translateY(-2px); }
-    button:disabled { background: #444; color: #888; cursor: not-allowed; transform: none; }
-    .dialogue { font-style: italic; color: #ccc; font-size: 15px; line-height: 1.6; text-align: left; background: #2a2a2a; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #5c6bc0; }
-    .choice-btn { display: block; width: 100%; background: #2e2e2e; border: 1px solid #555; text-align: left; margin-bottom: 10px; }
-    .choice-btn:hover { background: #444; border-color: #888; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>비주얼 노벨 방 탈출 게임 - 프로토타입</title>
+    <style>
+        /* -------------------------------------------------------------
+           [공통 스타일]
+        ------------------------------------------------------------- */
+        * { box-sizing: border-box; }
+        body {
+            background-color: #1a1a1a;
+            color: #ffffff;
+            font-family: 'Malgun Gothic', sans-serif;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .hidden {
+            display: none !important;
+        }
+
+        /* -------------------------------------------------------------
+           [1. 타이틀 화면 스타일]
+        ------------------------------------------------------------- */
+        .title-container {
+            width: 80%;
+            max-width: 1000px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .menu-section {
+            display: flex;
+            flex-direction: column;
+            gap: 45px; /* 버튼 간격 동일하게 조정 */
+        }
+        .menu-btn {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: left;
+            padding: 0;
+            transition: color 0.2s, transform 0.2s;
+            width: fit-content;
+        }
+        .menu-btn:hover {
+            color: #d9534f;
+            transform: translateX(10px);
+        }
+        .logout-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .user-account {
+            font-size: 15px;
+            color: #888888;
+            padding-left: 2px;
+        }
+        .title-wrapper {
+            transform: translateY(-80px); /* 배경을 고려해 위로 올림 */
+        }
+        .main-title {
+            font-size: 100px;
+            font-weight: 900;
+            margin: 0;
+            letter-spacing: 5px;
+            text-shadow: 4px 4px 10px rgba(0, 0, 0, 0.7);
+        }
+
+        /* -------------------------------------------------------------
+           [2. 게임 진행(비주얼 노벨) 화면 스타일]
+        ------------------------------------------------------------- */
+        .game-screen {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background-color: #111111; /* 배경 이미지 대신 짙은 암흑 */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 40px;
+        }
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px 25px;
+            border-radius: 12px;
+            border: 1px solid #333;
+        }
+        .location-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffd700;
+        }
+        .textbox-container {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto 20px auto;
+            position: relative;
+        }
+        .name-tag {
+            position: absolute;
+            top: -35px;
+            left: 20px;
+            background: #d9534f;
+            color: white;
+            padding: 6px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px 5px 0 0;
+            border: 1px solid #d9534f;
+            border-bottom: none;
+        }
+        .script-box {
+            background: rgba(20, 20, 20, 0.9);
+            border: 2px solid #444;
+            border-radius: 12px;
+            padding: 25px;
+            min-height: 140px;
+            cursor: pointer; /* 클릭 가능하다는 표시 */
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        .script-text {
+            font-size: 18px;
+            line-height: 1.6;
+            margin: 0;
+            color: #eceff1;
+        }
+        /* 대사창 우측 하단에 깜빡이는 화살표 표시 */
+        .script-box::after {
+            content: "▶";
+            position: absolute;
+            bottom: 20px;
+            right: 30px;
+            font-size: 14px;
+            color: #888;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+    </style>
 </head>
 <body>
 
-  <div id="titleScreen" class="screen active">
-    <h1 style="color: #ff5252; letter-spacing: 2px; margin-bottom: 5px;">ESCAPE FROM SCHOOL</h1>
-    <p style="color: #888; font-size: 12px; margin-bottom: 30px;">기억을 잃은 밤, 진실을 찾아라</p>
-    
-    <div id="loginArea">
-      <input type="text" id="usernameInput" placeholder="플레이어 이름 입력">
-      <br>
-      <button onclick="login()">로그인 (Login)</button>
+    <div id="title-screen" class="title-container">
+        <div class="menu-section">
+            <button class="menu-btn" id="btn-start">시작</button>
+            <button class="menu-btn">갤러리</button>
+            <div class="logout-wrapper">
+                <button class="menu-btn">로그아웃</button>
+                <span class="user-account">user_account@email.com</span>
+            </div>
+        </div>
+        <div class="title-wrapper">
+            <h1 class="main-title">타이틀</h1>
+        </div>
     </div>
 
-    <div id="userArea" style="display:none; margin-bottom: 20px;">
-      <p style="color: #81c784; font-weight: bold;">환영합니다, <span id="playerName"></span>님.</p>
-      <button onclick="logout()" style="background: #e53935;">로그아웃</button>
+    <div id="game-screen" class="game-screen hidden">
+        <div class="top-bar">
+            <div class="location-title" id="location-text">📍 학교 - 4층 엘리베이터 앞</div>
+            <div style="color: #888; font-size: 14px;">화면(대사창)을 클릭하면 진행됩니다.</div>
+        </div>
+
+        <div class="textbox-container">
+            <div class="name-tag" id="char-name">시스템</div>
+            <div class="script-box" id="script-box">
+                <p class="script-text" id="script-content">대사가 여기에 출력됩니다.</p>
+            </div>
+        </div>
     </div>
 
-    <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
-    <button id="startBtn" onclick="nextScreen('introScreen')" disabled>게임 시작 (Start)</button>
-  </div>
+    <script>
+        // 수정된 고등학교 현실 반영 오프닝 스크립트 데이터
+        const gameScript = [
+            { name: "무이", text: "하아... 오늘 수행평가 준비하느라 늦었네. 온몸이 쑤신다.", location: "📍 학교 - 4층 엘리베이터 앞" },
+            { name: "무이", text: "선생님들이 학생들은 타지 말라고 하긴 했는데... 에라 모르겠다. 오늘만 엘리베이터 타야지.", location: "📍 학교 - 4층 엘리베이터 앞" },
+            { name: "시스템", text: "무이는 주위를 살피다 아무도 없는 것을 확인하고 엘리베이터 버튼을 눌렀다.", location: "📍 학교 - 엘리베이터 안" },
+            { name: "시스템", text: "덜컹ㅡㅡ!", location: "📍 학교 - 엘리베이터 안" },
+            { name: "무이", text: "우왓?! 뭐야, 왜 이러지? 갑자기 엘리베이터 불이 전부 꺼졌어...!", location: "📍 학교 - 엘리베이터 안 (정전)" },
+            { name: "시스템", text: "위이잉 하는 기괴한 기계음과 함께 엘리베이터가 끝이 없는 바닥으로 추락하기 시작한다.", location: "📍 ???" },
+            { name: "시스템", text: "이윽고, 문이 스르륵 열렸다. 하지만 그곳은 익숙한 학교 복도가 아니었다...", location: "📍 이상한 공간 - 복도" }
+        ];
 
+        let currentLine = 0;
+        let isTyping = false;
+        let typingTimer = null;
 
-  <div id="introScreen" class="screen">
-    <h2 style="color: #aaa; font-size: 18px;">밤 11시 30분, 텅 빈 학교</h2>
-    
-    <div class="dialogue" id="introText">
-      "분명 수학 노트를 교실에 두고 와서 가지러 온 것뿐인데……."<br><br>
-      복도를 걷던 중, 갑자기 등골이 오싹해지며 주변의 공기가 기괴하게 뒤틀렸다. 창밖의 달빛은 핏빛으로 변했고, 익숙했던 학교의 구조가 미로처럼 변해버렸다.<br><br>
-      "학교가 완전히 이공간으로 변했어. 여기서 나가야 해!"
-    </div>
+        // HTML 요소 맵핑
+        const titleScreen = document.getElementById('title-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const btnStart = document.getElementById('btn-start');
+        
+        const nameTag = document.getElementById('char-name');
+        const scriptContent = document.getElementById('script-content');
+        const locationText = document.getElementById('location-text');
+        const scriptBox = document.getElementById('script-box');
 
-    <button onclick="nextScreen('hubScreen')">복도 끝으로 달려간다 ➡️</button>
-  </div>
+        // [화면 전환] 시작 버튼을 누르면 타이틀을 숨기고 게임 화면을 보여줌
+        btnStart.addEventListener('click', () => {
+            titleScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+            startOpening();
+        });
 
+        // [타이핑 효과] 글자를 한 글자씩 출력
+        function typeWriter(text, i = 0) {
+            if (i === 0) {
+                scriptContent.textContent = "";
+                isTyping = true;
+            }
 
-  <div id="hubScreen" class="screen">
-    <h2 style="color: #ffb74d; font-size: 20px;">🚪 중앙 로비 : 봉인된 엘리베이터</h2>
-    
-    <div class="dialogue">
-      "유일한 출구인 1층으로 가는 엘리베이터를 찾았다. 하지만……"<br><br>
-      엘리베이터의 호출 버튼은 박살 나 있고, 대신 기괴하게 생긴 <b>[메인 패널]</b>이 붉은빛을 뿜으며 닫혀 있다. 패널에는 용의자를 지목하라는 듯한 암호 입력창이 띄워져 있다.<br><br>
-      "이 문을 열려면 이 학교에서 벌어진 일의 '진범'을 알아내야만 해. 주변 방들을 뒤져서 단서를 모아보자."
-    </div>
+            if (i < text.length) {
+                scriptContent.textContent += text.charAt(i);
+                typingTimer = setTimeout(() => typeWriter(text, i + 1), 40); // 타이핑 속도 (40ms)
+            } else {
+                isTyping = false;
+            }
+        }
 
-    <div style="background: #111; padding: 15px; border-radius: 8px; border: 1px dashed #ff5252; margin-bottom: 20px;">
-      <span style="color: #ff5252; font-weight: bold; font-size: 14px;">[ 획득한 단서: 0 / 3 ]</span>
-      <p style="font-size: 12px; color: #888; margin-top: 5px;">세 곳의 방을 조사하여 범인에 대한 힌트를 찾아야 합니다.</p>
-    </div>
+        // [넘어가기] 다음 대사 진행 또는 스킵
+        function playNextScript() {
+            if (isTyping) {
+                // 타이핑 중일 때 클릭하면 한 번에 전체 문장 출력 (스킵)
+                clearTimeout(typingTimer);
+                scriptContent.textContent = gameScript[currentLine].text;
+                isTyping = false;
+                return;
+            }
 
-    <button class="choice-btn" onclick="enterRoom('교무실')">
-      <span style="font-size: 18px;">🖥️</span> 교무실 : 푸른 모니터 불빛이 새어 나온다.
-    </button>
-    <button class="choice-btn" onclick="enterRoom('도서관')">
-      <span style="font-size: 18px;">📚</span> 도서관 : 끝이 보이지 않는 책 탑이 쌓여 있다.
-    </button>
-    <button class="choice-btn" onclick="enterRoom('컴퓨터실')">
-      <span style="font-size: 18px;">💻</span> 컴퓨터실 : 천장 전등이 기괴하게 깜빡거린다.
-    </button>
-  </div>
+            // 모든 오프닝 대사가 끝났을 때
+            if (currentLine >= gameScript.length - 1) {
+                alert("이세계(이상한 공간)에 진입했습니다! 오프닝 파트가 끝났습니다.");
+                return;
+            }
 
-  <script>
-    // 로그인 시스템 로직
-    function login() {
-      const name = document.getElementById('usernameInput').value.trim();
-      if(name === "") {
-        alert("이름을 입력해주세요.");
-        return;
-      }
-      document.getElementById('playerName').innerText = name;
-      document.getElementById('loginArea').style.display = 'none';
-      document.getElementById('userArea').style.display = 'block';
-      document.getElementById('startBtn').disabled = false; // 게임 시작 버튼 활성화
-      document.getElementById('startBtn').style.background = '#4caf50';
-    }
+            currentLine++;
+            updateUI();
+        }
 
-    function logout() {
-      document.getElementById('usernameInput').value = "";
-      document.getElementById('loginArea').style.display = 'block';
-      document.getElementById('userArea').style.display = 'none';
-      document.getElementById('startBtn').disabled = true; // 게임 시작 버튼 비활성화
-      document.getElementById('startBtn').style.background = '#444';
-    }
+        // UI 요소 갱신 및 타이핑 시작
+        function updateUI() {
+            const currentData = gameScript[currentLine];
+            nameTag.textContent = currentData.name;
+            locationText.textContent = currentData.location;
+            typeWriter(currentData.text);
+        }
 
-    // 화면 전환 함수
-    function nextScreen(screenId) {
-      // 모든 스크린 숨기기
-      const screens = document.querySelectorAll('.screen');
-      screens.forEach(s => s.classList.remove('active'));
-      
-      // 타겟 스크린 보이기
-      document.getElementById(screenId).classList.add('active');
-    }
+        // 오프닝 시작 지점
+        function startOpening() {
+            currentLine = 0;
+            updateUI();
+        }
 
-    // 방 진입 임시 함수
-    function enterRoom(roomName) {
-      alert(`[시스템] 무이가 '${roomName}'(으)로 진입합니다.\n\n(이 버튼을 누르면 이전에 만들었던 각 방의 퍼즐 화면으로 전환되도록 연결할 예정입니다.)`);
-    }
-  </script>
-
+        // 대사창 클릭 이벤트 등록
+        scriptBox.addEventListener('click', playNextScript);
+    </script>
 </body>
 </html>
