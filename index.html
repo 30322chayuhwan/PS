@@ -2,52 +2,79 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>도서관 좌표 퍼즐 최종 테스트</title>
+  <title>도서관 심플 블록 퍼즐</title>
 </head>
-<body style="background-color: #222; padding: 50px; display: flex; justify-content: center;">
+<body style="background-color: #222; padding: 50px; display: flex; justify-content: center; font-family: sans-serif;">
 
-  <div id="libraryCoordPuzzle" style="text-align:center; padding:20px; background:#19191e; color:#fff; border-radius:12px; max-width:440px; font-family:sans-serif; box-shadow:0 6px 20px rgba(0,0,0,0.4);">
-    <h3 style="color:#ffa726; margin-top:0; font-size:18px;">📚 도서관: 거대 서가의 좌표</h3>
+  <div id="libraryVisualPuzzle" style="text-align:center; padding:20px; background:#19191e; color:#fff; border-radius:12px; max-width:540px; box-shadow:0 6px 20px rgba(0,0,0,0.4);">
+    <h3 style="color:#ffa726; margin-top:0; font-size:18px;">📚 도서관: 이공간의 거대 서가</h3>
     
-    <div style="background:#b71c1c; color:#fff; padding:15px; border-radius:8px; margin-bottom:15px; border:2px solid #ff8a80; box-shadow: 2px 2px 10px rgba(0,0,0,0.5);">
-      <span style="font-size:12px; color:#ff8a80; font-weight:bold; display:block; margin-bottom:5px;">📕 새빨간 가죽 수첩의 메모</span>
-      <span style="font-family:monospace; font-size:24px; font-weight:bold; letter-spacing: 2px;">[ 2 - 3 - 4 ]</span>
+    <div style="background:#b71c1c; color:#fff; padding:10px; border-radius:8px; margin-bottom:15px; border:2px solid #ff8a80;">
+      <span style="font-size:12px; color:#ff8a80; font-weight:bold;">📕 새빨간 가죽 수첩의 메모 (책장 - 칸 - 번째)</span><br>
+      <span style="font-family:monospace; font-size:22px; font-weight:bold; letter-spacing: 2px;">[ 2 - 3 - 4 ]</span>
     </div>
 
-    <div style="font-style:italic; color:#ccc; font-size:13px; line-height:1.6; text-align:left; padding:10px; background:rgba(255,255,255,0.05); border-radius:6px; margin-bottom:15px;">
-      "아무 책이나 섣불리 만지면 책 탑이 통째로 무너질 거야.<br>
-      수첩에 적힌 대로 <b>[몇 번 책장] - [몇 번째 칸] - [몇 번째 책]</b>인지 정확한 좌표 숫자를 순서대로 입력해서 안전하게 꺼내자."
+    <div style="font-style:italic; color:#ccc; font-size:13px; line-height:1.5; margin-bottom:20px;">
+      "책 탑이 무너지지 않게, 수첩에 적힌 좌표의 책(블록)을 정확히 찾아 클릭하자."
     </div>
     
-    <div style="margin-bottom:15px;">
-      <input type="text" id="coord1" placeholder="책장" style="width:50px; padding:8px; text-align:center; font-size:16px; border-radius:4px; border:1px solid #444; background:#222; color:#fff;"> - 
-      <input type="text" id="coord2" placeholder="층" style="width:50px; padding:8px; text-align:center; font-size:16px; border-radius:4px; border:1px solid #444; background:#222; color:#fff;"> - 
-      <input type="text" id="coord3" placeholder="번째" style="width:50px; padding:8px; text-align:center; font-size:16px; border-radius:4px; border:1px solid #444; background:#222; color:#fff;">
-    </div>
-
-    <button onclick="checkLibraryCoordinates()" style="background:#ffa726; color:#111; padding:10px 20px; border:none; border-radius:4px; font-size:14px; cursor:pointer; font-weight:bold; width:100%;">해당 좌표의 책 꺼내기</button>
+    <div id="bookcaseContainer" style="display:flex; justify-content:space-between; gap: 15px; background:#111; padding:15px; border-radius:8px; border:1px solid #333;">
+      </div>
   </div>
 
   <script>
-    function checkLibraryCoordinates() {
-      const c1 = document.getElementById('coord1').value.trim();
-      const c2 = document.getElementById('coord2').value.trim();
-      const c3 = document.getElementById('coord3').value.trim();
-      
-      // 정답 확인: 2, 3, 4
-      if (c1 === "2" && c2 === "3" && c3 === "4") {
-        alert("📚 잠금 해제 성공!\n\n무이가 2번 책장, 3번째 칸의 4번째 책을 안전하게 꺼냈습니다.\n겉표지만 남고 속이 칼로 파여 있는 가짜 책이군요! 그 안에서 최종 범인을 특정할 수 있는 [도서관 단서]를 발견했습니다.");
-      } else {
-        // 오답 시 책 탑 붕괴 및 루프
-        alert("❌ 콰르르릉-!\n\n엉뚱한 좌표의 책을 건드리는 순간 균형이 깨지며 수천 권의 책들이 폭포처럼 무이를 덮칩니다. 시야가 완전히 암전됩니다.");
-        alert("무이: '……어라. 나 방금 도서관 문 열면서 잠깐 졸았나? 귀가 되게 멍멍하네. 아무튼 빨리 저 책 탑 아래에 떨어진 빨간 수첩을 주워서 좌표를 확인하자.'");
+    // 책장 UI를 동적으로 생성하는 함수 (심플 블록 디자인)
+    function renderBookcases() {
+      const container = document.getElementById('bookcaseContainer');
+      let htmlString = "";
+
+      // 총 3개의 책장 생성
+      for (let bc = 1; bc <= 3; bc++) {
+        htmlString += `<div style="background:#2a2a2a; padding:10px; border:2px solid #444; border-radius:4px; width:130px;">`;
+        htmlString += `<div style="text-align:center; color:#888; font-size:12px; font-weight:bold; margin-bottom:12px;">[ ${bc}번 책장 ]</div>`;
         
-        // 입력창 리셋
-        document.getElementById('coord1').value = "";
-        document.getElementById('coord2').value = "";
-        document.getElementById('coord3').value = "";
+        // 각 책장마다 3개의 층(칸) 생성
+        for (let shelf = 1; shelf <= 3; shelf++) {
+          htmlString += `<div style="display:flex; justify-content:center; gap:6px; border-bottom:4px solid #555; padding-bottom:4px; margin-bottom:12px;">`;
+          
+          // 각 칸마다 5권의 책(블록) 생성
+          for (let book = 1; book <= 5; book++) {
+            // 심플한 단색 회색 블록
+            htmlString += `
+              <div 
+                onclick="attemptPullBook(${bc}, ${shelf}, ${book})" 
+                style="width:16px; height:28px; background:#666; cursor:pointer; border-radius:2px; transition: background 0.1s;"
+                onmouseover="this.style.background='#fff';"
+                onmouseout="this.style.background='#666';"
+                title="${bc}번 책장, ${shelf}번째 칸, ${book}번째 책"
+              ></div>`;
+          }
+          htmlString += `</div>`; // 칸 닫기
+        }
+        htmlString += `</div>`; // 책장 닫기
+      }
+      container.innerHTML = htmlString;
+    }
+
+    // 책을 클릭했을 때 실행되는 함수 (확인창 포함)
+    function attemptPullBook(bc, shelf, book) {
+      // 1. 확인창 띄우기
+      const isConfirmed = confirm(`⚠️ 정말 [ ${bc}번 책장, 위에서 ${shelf}번째 칸, 왼쪽에서 ${book}번째 책 ]을 꺼내시겠습니까?\n\n(잘못된 위치를 건드리면 책 탑이 무너집니다!)`);
+      
+      if (isConfirmed) {
+        // 정답 판정 (2번 책장, 3번째 칸, 4번째 책)
+        if (bc === 2 && shelf === 3 && book === 4) {
+          alert("📚 잠금 해제 성공!\n\n무이가 조심스럽게 해당 블록을 꺼냈습니다.\n속이 칼로 파여 있는 가짜 책이군요! 그 안에서 최종 범인을 특정할 수 있는 [도서관 단서]를 발견했습니다.");
+        } else {
+          // 오답 시 붕괴 연출
+          alert("❌ 콰르르릉-!\n\n엉뚱한 위치를 건드리는 순간 균형이 깨지며 수천 권의 책들이 폭포처럼 무이를 덮칩니다. 시야가 완전히 암전됩니다.");
+          alert("무이: '……어라. 나 방금 도서관 문 열면서 잠깐 졸았나? 귀가 되게 멍멍하네. 아무튼 빨리 저 책 탑 아래에 떨어진 빨간 수첩을 주워서 좌표를 다시 확인하자.'");
+        }
       }
     }
+
+    // 페이지가 로딩되면 책장을 그립니다.
+    renderBookcases();
   </script>
 
 </body>
