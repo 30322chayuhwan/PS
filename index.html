@@ -2,27 +2,27 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>도서관 테스트</title>
+  <title>도서관 판정 수정 테스트</title>
 </head>
 <body style="background-color: #222; padding: 50px; display: flex; justify-content: center;">
 
   <div id="libraryPhysicsGame" style="text-align:center; padding:20px; background:#19191e; color:#fff; border-radius:12px; max-width:420px; font-family:sans-serif; box-shadow:0 6px 20px rgba(0,0,0,0.4);">
-    <h3 style="color:#ffa726; margin-top:0; font-size:18px;">📚 도서관: 이공간의 책 탑</h3>
+    <h3 style="color:#ffa726; margin-top:0; font-size:18px;">📚 도서관: 이공간의 책 탑 (판정 수정본)</h3>
     
     <div style="font-style:italic; color:#dddddd; font-size:13px; line-height:1.6; text-align:left; padding:10px; background:rgba(255,255,255,0.05); border-radius:6px; margin-bottom:15px;">
-      "살짝 건드려보니 책들이 비가 내리듯 쏟아지던데, 저 거대한 책 탑 한가운데에 <b>혼자 기괴하게 번쩍이는 새빨간 가죽 수첩</b>이 꽂혀 있다. 대놓고 단서라고 광고를 하네. 저것만 쏙 빼내야 하는데, 타이밍 잘못 맞추면 탑이 통째로 무너지면서 파묻힐 거야. 조심하자."
+      정중앙 <b>초록색 영역</b>에 빨간 바가 들어왔을 때 아래 버튼을 누르세요. (판정 범위를 넉넉하게 수정했습니다.)
     </div>
     
-    <div style="position:relative; width:100%; height:26px; background:#444; border-radius:13px; margin:20px 0; overflow:hidden; border:2px solid #666;">
-      <div style="position:absolute; left:40%; width:20%; height:100%; background:#2e7d32;"></div>
-      <div id="gaugePin" style="position:absolute; left:0%; width:8px; height:100%; background:#d32f2f; box-shadow:0 0 10px #ff1744; transition: left 0.02s linear;"></div>
+    <div style="position:relative; width:100%; height:30px; background:#444; border-radius:15px; margin:20px 0; overflow:hidden; border:2px solid #666;">
+      <div style="position:absolute; left:35%; width:30%; height:100%; background:#2e7d32; box-shadow: inset 0 0 10px rgba(0,0,0,0.5);"></div>
+      <div id="gaugePin" style="position:absolute; left:0%; width:10px; height:100%; background:#d32f2f; box-shadow:0 0 12px #ff1744;"></div>
     </div>
     
     <div style="margin-bottom:15px; font-size:13.5px;">
       📖 빨간 수첩 추출 상태: <span id="successCount" style="color:#81c784; font-weight:bold;">0</span> / 3번 성공
     </div>
     
-    <button id="actionBtn" onclick="pullNotebook()" style="background:#ffa726; color:#111; padding:12px 20px; border:none; border-radius:6px; font-weight:bold; font-size:14px; cursor:pointer; width:100%; transition:all 0.2s;">⚠️ 수첩을 타이밍 맞춰 잡아당기기</button>
+    <button id="actionBtn" onclick="pullNotebook()" style="background:#ffa726; color:#111; padding:14px 20px; border:none; border-radius:6px; font-weight:bold; font-size:15px; cursor:pointer; width:100%; transition:all 0.1s; active { transform: scale(0.98); }">⚠️ 지금 수첩 잡아당기기!</button>
   </div>
 
   <script>
@@ -31,46 +31,34 @@
     let direction = 1;
     let successes = 0;
     
-    // 게이지 왕복 운동 (브라우저가 켜지면 자동으로 루프 동작)
+    // 이동 속도와 부드러움을 위해 수치 조절 (폭을 1.5로 낮추고 프레임을 매끄럽게 변경)
     let pinInterval = setInterval(() => {
-      currentLeft += (2.5 * direction);
-      if (currentLeft >= 98) direction = -1;
-      if (currentLeft <= 0) direction = 1;
+      currentLeft += (1.8 * direction);
+      if (currentLeft >= 97) { currentLeft = 97; direction = -1; }
+      if (currentLeft <= 0) { currentLeft = 0; direction = 1; }
       pin.style.left = currentLeft + '%';
     }, 16);
 
     function pullNotebook() {
-      // 중앙 초록색 영역 판정 (40% ~ 60%)
-      if (currentLeft >= 40 && currentLeft <= 60) {
+      // 판정 범위를 35% ~ 65%로 넓혀서 마우스 클릭 딜레이를 커버합니다.
+      if (currentLeft >= 35 && currentLeft <= 65) {
         successes++;
         document.getElementById('successCount').textContent = successes;
         
         if (successes === 3) {
           clearInterval(pinInterval);
           document.getElementById('actionBtn').disabled = true;
-          alert("📚 성공!\n\n무이가 완벽한 타이밍으로 힘을 조절해 책 탑을 무너뜨리지 않고 새빨간 가죽 수첩을 안전하게 쏙 빼냈습니다!\n수첩을 열자 [도서관 단서]가 적혀 있습니다.");
+          alert("📚 성공!\n\n탑을 무너뜨리지 않고 새빨간 가죽 수첩을 안전하게 쏙 빼냈습니다!");
         } else {
-          alert("✔️ 세이프! 책 탑이 스르륵 소리를 내며 위태롭게 흔들렸지만 무너지진 않았습니다. 조금 더 빼내야 합니다!");
+          alert("✔️ 세이프! 성공입니다. 연속해서 집중하세요!");
         }
       } else {
-        // 타이밍 맞추기 실패 시 -> 책 탑 붕괴 및 기억 왜곡 루프 연출
-        clearInterval(pinInterval);
-        document.getElementById('actionBtn').disabled = true;
-        alert("❌ 쿠구구궁-! 거대한 책 탑의 붕괴\n\n타이밍을 놓쳐 억지로 당기는 순간 균형이 깨졌습니다. 수천 권의 무거운 책들이 파도처럼 무이를 덮치며 시야가 완전히 암전됩니다.");
-        
-        alert("무이: '……어라. 나 방금 도서관 문 열면서 잠깐 졸았나? 귀가 되게 멍멍하네. 기분 탓인가…… 아무튼 빨리 저 책 탑에 꽂힌 빨간 수첩이나 조사하자.'");
-        
-        // 체크포인트 시스템: 인벤토리는 보존하되, 도서관 퍼즐만 초기 상태로 리셋 후 재시작
+        // 실패 시 리셋
+        alert("❌ 실패! 책 탑이 와르르 무너졌습니다.\n(무이: ……어라, 나 잠깐 졸았나?)");
         successes = 0;
         document.getElementById('successCount').textContent = "0";
-        document.getElementById('actionBtn').disabled = false;
-        direction = 1; currentLeft = 0;
-        pinInterval = setInterval(() => {
-          currentLeft += (2.5 * direction);
-          if (currentLeft >= 98) direction = -1;
-          if (currentLeft <= 0) direction = 1;
-          pin.style.left = currentLeft + '%';
-        }, 16);
+        currentLeft = 0;
+        direction = 1;
       }
     }
   </script>
