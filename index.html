@@ -2,36 +2,75 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>교무실 테스트</title>
+  <title>도서관 테스트</title>
 </head>
 <body style="background-color: #222; padding: 50px; display: flex; justify-content: center;">
 
-  <div id="staffRoomPuzzle" style="text-align:center; padding:20px; background:#f8f9fa; border-radius:12px; border:1px solid #dee2e6; max-width:440px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
-    <h3 style="color:#212529; margin-top:0; font-size:18px;">🖥️ 교무실 모니터 암호 해독</h3>
+  <div id="libraryPhysicsGame" style="text-align:center; padding:20px; background:#19191e; color:#fff; border-radius:12px; max-width:420px; font-family:sans-serif; box-shadow:0 6px 20px rgba(0,0,0,0.4);">
+    <h3 style="color:#ffa726; margin-top:0; font-size:18px;">📚 도서관: 이공간의 책 탑</h3>
     
-    <div style="background:#1e1e1e; color:#39ff14; padding:18px; font-family:monospace; font-size:20px; margin-bottom:12px; border-radius:6px; box-shadow: inset 0 0 10px #000;">
-      [ ENCRYPTED WORD ]<br>
-      <span style="color:#ffffff; font-weight:bold; letter-spacing: 3px; font-size:26px;">" NCDATKPVJ "</span>
-      <div style="color:#888888; font-size:12px; margin-top:12px; font-family: sans-serif;">Sub-text: CAESAR 2</div>
+    <div style="font-style:italic; color:#dddddd; font-size:13px; line-height:1.6; text-align:left; padding:10px; background:rgba(255,255,255,0.05); border-radius:6px; margin-bottom:15px;">
+      "살짝 건드려보니 책들이 비가 내리듯 쏟아지던데, 저 거대한 책 탑 한가운데에 <b>혼자 기괴하게 번쩍이는 새빨간 가죽 수첩</b>이 꽂혀 있다. 대놓고 단서라고 광고를 하네. 저것만 쏙 빼내야 하는데, 타이밍 잘못 맞추면 탑이 통째로 무너지면서 파묻힐 거야. 조심하자."
     </div>
-
-    <p style="font-style:italic; color:#495057; font-size:13.5px; line-height:1.6; margin-bottom:20px; text-align:left; padding:0 10px;">
-      "N에서 두 칸 앞으로 당기면 L이고…… 알파벳을 하나씩 당겨서 조합하면 원래 단어가 나오겠지."
-    </p>
     
-    <input type="text" id="puzzleInput" placeholder="해독한 영어 단어 입력" style="width:200px; padding:10px; text-align:center; font-size:15px; margin-bottom:12px; border:1px solid #ced4da; border-radius:4px; text-transform: uppercase;"><br>
-    <button onclick="checkCaesarPassword()" style="background:#212529; color:white; padding:10px 20px; border:none; border-radius:4px; font-size:14px; cursor:pointer; font-weight:bold; width:222px;">엔터(Enter)</button>
+    <div style="position:relative; width:100%; height:26px; background:#444; border-radius:13px; margin:20px 0; overflow:hidden; border:2px solid #666;">
+      <div style="position:absolute; left:40%; width:20%; height:100%; background:#2e7d32;"></div>
+      <div id="gaugePin" style="position:absolute; left:0%; width:8px; height:100%; background:#d32f2f; box-shadow:0 0 10px #ff1744; transition: left 0.02s linear;"></div>
+    </div>
+    
+    <div style="margin-bottom:15px; font-size:13.5px;">
+      📖 빨간 수첩 추출 상태: <span id="successCount" style="color:#81c784; font-weight:bold;">0</span> / 3번 성공
+    </div>
+    
+    <button id="actionBtn" onclick="pullNotebook()" style="background:#ffa726; color:#111; padding:12px 20px; border:none; border-radius:6px; font-weight:bold; font-size:14px; cursor:pointer; width:100%; transition:all 0.2s;">⚠️ 수첩을 타이밍 맞춰 잡아당기기</button>
   </div>
 
   <script>
-    function checkCaesarPassword() {
-      const userAnswer = document.getElementById('puzzleInput').value.trim().toUpperCase();
-      
-      // 정답: NCDATKPVJ를 왼쪽으로 2칸씩 당기면 -> LABYRINTH
-      if (userAnswer === "LABYRINTH") {
-        alert("🖥️ [Access Granted]\n잠금이 해제되었습니다!\n\n화면에 최종 범인을 특정할 수 있는 [교무실 단서]가 나타났습니다.\n무이는 이 내용을 수첩에 메모했습니다.");
+    let pin = document.getElementById('gaugePin');
+    let currentLeft = 0;
+    let direction = 1;
+    let successes = 0;
+    
+    // 게이지 왕복 운동 (브라우저가 켜지면 자동으로 루프 동작)
+    let pinInterval = setInterval(() => {
+      currentLeft += (2.5 * direction);
+      if (currentLeft >= 98) direction = -1;
+      if (currentLeft <= 0) direction = 1;
+      pin.style.left = currentLeft + '%';
+    }, 16);
+
+    function pullNotebook() {
+      // 중앙 초록색 영역 판정 (40% ~ 60%)
+      if (currentLeft >= 40 && currentLeft <= 60) {
+        successes++;
+        document.getElementById('successCount').textContent = successes;
+        
+        if (successes === 3) {
+          clearInterval(pinInterval);
+          document.getElementById('actionBtn').disabled = true;
+          alert("📚 성공!\n\n무이가 완벽한 타이밍으로 힘을 조절해 책 탑을 무너뜨리지 않고 새빨간 가죽 수첩을 안전하게 쏙 빼냈습니다!\n수첩을 열자 [도서관 단서]가 적혀 있습니다.");
+        } else {
+          alert("✔️ 세이프! 책 탑이 스르륵 소리를 내며 위태롭게 흔들렸지만 무너지진 않았습니다. 조금 더 빼내야 합니다!");
+        }
       } else {
-        alert("❌ [Access Denied]\n올바르지 않은 입력값입니다.");
+        // 타이밍 맞추기 실패 시 -> 책 탑 붕괴 및 기억 왜곡 루프 연출
+        clearInterval(pinInterval);
+        document.getElementById('actionBtn').disabled = true;
+        alert("❌ 쿠구구궁-! 거대한 책 탑의 붕괴\n\n타이밍을 놓쳐 억지로 당기는 순간 균형이 깨졌습니다. 수천 권의 무거운 책들이 파도처럼 무이를 덮치며 시야가 완전히 암전됩니다.");
+        
+        alert("무이: '……어라. 나 방금 도서관 문 열면서 잠깐 졸았나? 귀가 되게 멍멍하네. 기분 탓인가…… 아무튼 빨리 저 책 탑에 꽂힌 빨간 수첩이나 조사하자.'");
+        
+        // 체크포인트 시스템: 인벤토리는 보존하되, 도서관 퍼즐만 초기 상태로 리셋 후 재시작
+        successes = 0;
+        document.getElementById('successCount').textContent = "0";
+        document.getElementById('actionBtn').disabled = false;
+        direction = 1; currentLeft = 0;
+        pinInterval = setInterval(() => {
+          currentLeft += (2.5 * direction);
+          if (currentLeft >= 98) direction = -1;
+          if (currentLeft <= 0) direction = 1;
+          pin.style.left = currentLeft + '%';
+        }, 16);
       }
     }
   </script>
