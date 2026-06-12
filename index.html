@@ -84,7 +84,7 @@
       <div id="morseChart" class="chart-box hidden">
         </div>
 
-      <button id="playBtn" class="play-btn">🔊 새로운 문제 듣기 (Random Word)</button>
+      <button id="playBtn" class="play-btn">🔊 새로운 문제 듣기</button>
       <div id="status" class="status">버튼을 눌러 문제를 받아오세요.</div>
 
       <div class="input-section">
@@ -101,8 +101,10 @@
   </div>
 
   <script type="module">
+    // Firebase 필수 모듈 불러오기 (Auth + Database)
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import { getDatabase, ref, set, get } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
 
     const firebaseConfig = {
       apiKey: "AIzaSyDlTRZ8FD3WrPyzNVxY8KumBBbwAEshwgk",
@@ -115,13 +117,14 @@
       measurementId: "G-XNW8RT9QFW"
     };
 
-    // ⚠️ Apps Script 배포 URL을 입력하세요.
+    // ⚠️ 앱스 스크립트 웹 앱 URL을 여기에 꼭 다시 넣어주세요!
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzey7fp5Ftx5xjRYZZr4ymqFvuti8Ttkd_AHHJu141r3Ze5NVerA9dTSLBMeUllOjWXBQ/exec';
 
+    // Firebase 초기화
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const db = getDatabase(app);
 
-    // 모스부호 사전 정의 (A-Z)
     const morseDict = {
       'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.', 
       'G': '--.', 'H': '....', 'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..', 
@@ -134,7 +137,6 @@
     let currentWord = "";
     let correctMorse = "";
 
-    // DOM 요소
     const authSection = document.getElementById('authSection');
     const appSection = document.getElementById('appSection');
     const emailInput = document.getElementById('emailInput');
@@ -149,7 +151,7 @@
     const morseInput = document.getElementById('morseInput');
     const audioPlayer = document.getElementById('audioPlayer');
 
-    // 모스부호 표 UI 생성
+    // 표 렌더링
     for (const [letter, morse] of Object.entries(morseDict)) {
       const div = document.createElement('div');
       div.className = 'chart-item';
@@ -157,16 +159,12 @@
       morseChart.appendChild(div);
     }
 
-    // 표 토글
-    toggleChartBtn.addEventListener('click', () => {
-      morseChart.classList.toggle('hidden');
-    });
+    toggleChartBtn.addEventListener('click', () => { morseChart.classList.toggle('hidden'); });
 
-    // 1. Firebase 로그인 로직
+    // 로그인/회원가입
     document.getElementById('signupBtn').addEventListener('click', async () => {
-      const e = emailInput.value; const p = passwordInput.value;
-      if(p.length < 6) return alert("비밀번호 6자리 이상 입력하세요.");
-      try { await createUserWithEmailAndPassword(auth, e, p); alert('가입 완료!'); } 
+      if(passwordInput.value.length < 6) return alert("비밀번호 6자리 이상 입력하세요.");
+      try { await createUserWithEmailAndPassword(auth, emailInput.value, passwordInput.value); alert('가입 완료!'); } 
       catch (err) { alert('오류: ' + err.message); }
     });
 
@@ -177,28 +175,43 @@
 
     document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
 
-    onAuthStateChanged(auth, (user) => {
+    // 로그인 상태 감지 & DB에서 점수 불러오기
+    onAuthStateChanged(auth, async (user) => {
       if (user) {
         authSection.classList.add('hidden');
         appSection.classList.remove('hidden');
         userEmailLabel.textContent = user.email;
+
+        // DB에서 해당 유저의 점수 가져오기 (경로: users/유저고유UID/score)
+        const scoreRef = ref(db, 'users/' + user.uid + '/score');
+        try {
+          const snapshot = await get(scoreRef);
+          if (snapshot.exists()) {
+            score = snapshot.val(); // 기존 점수가 있으면 덮어씌움
+          } else {
+            score = 0;
+            await set(scoreRef, 0); // 처음 온 유저면 DB에 0점 저장
+          }
+          scoreDisplay.textContent = score;
+        } catch (err) {
+          console.error("점수 불러오기 오류:", err);
+        }
+
       } else {
         authSection.classList.remove('hidden');
         appSection.classList.add('hidden');
+        score = 0; // 로그아웃 시 로컬 점수 초기화
       }
     });
 
-    // 2. 단어를 모스부호 코드로 변환해주는 헬퍼 함수
     function wordToMorse(word) {
       return word.split('').map(char => morseDict[char] || '').join(' ');
     }
 
-    // 3. GPT에서 새 문제 받아오기
+    // 문제 가져오기
     playBtn.addEventListener('click', async () => {
       try {
-        playBtn.disabled = true;
-        submitBtn.disabled = true;
-        morseInput.disabled = true;
+        playBtn.disabled = true; submitBtn.disabled = true; morseInput.disabled = true;
         statusBox.textContent = "⏳ AI가 무작위 단어를 생성하고 있습니다...";
         
         const response = await fetch(APPS_SCRIPT_URL, {
@@ -209,10 +222,9 @@
         const data = await response.json();
         if(data.error) throw new Error(data.error);
 
-        currentWord = data.word; // 예: "APPLE"
-        correctMorse = wordToMorse(currentWord); // 예: ".- .--. .--. .-.. ."
+        currentWord = data.word; 
+        correctMorse = wordToMorse(currentWord); 
 
-        // Audio 세팅
         const byteCharacters = atob(data.audioBase64);
         const byteNumbers = new Array(byteCharacters.length);
         for (let i = 0; i < byteCharacters.length; i++) byteNumbers[i] = byteCharacters.charCodeAt(i);
@@ -221,25 +233,18 @@
         audioPlayer.src = URL.createObjectURL(blob);
         audioPlayer.play();
 
-        statusBox.textContent = `단어가 재생되었습니다! 들은 단어의 모스부호를 입력하세요. (치트키: ${currentWord})`; // 나중에 치트키 부분은 삭제하세요!
-        
-        morseInput.disabled = false;
-        submitBtn.disabled = false;
-        morseInput.value = "";
-        morseInput.focus();
+        statusBox.textContent = `단어가 재생되었습니다! 들은 단어의 모스부호를 입력하세요.`; 
+        morseInput.disabled = false; submitBtn.disabled = false; morseInput.value = ""; morseInput.focus();
 
       } catch (err) {
-        console.error(err);
-        statusBox.textContent = "❌ 단어를 불러오는 데 실패했습니다.";
-        alert("에러: " + err.message);
+        statusBox.textContent = "❌ 단어를 불러오는 데 실패했습니다."; alert("에러: " + err.message);
       } finally {
-        playBtn.disabled = false;
-        playBtn.textContent = "🔊 문제 다시 듣기";
+        playBtn.disabled = false; playBtn.textContent = "🔊 문제 다시 듣기";
       }
     });
 
-    // 4. 정답 확인 로직
-    function checkAnswer() {
+    // 정답 확인 및 DB에 점수 저장
+    async function checkAnswer() {
       const userAnswer = morseInput.value.trim();
       
       if(userAnswer === correctMorse) {
@@ -247,9 +252,17 @@
         scoreDisplay.textContent = score;
         statusBox.style.color = "green";
         statusBox.textContent = "🎉 정답입니다! 다음 문제를 받아주세요.";
-        morseInput.disabled = true;
-        submitBtn.disabled = true;
-        playBtn.textContent = "🔊 다음 문제 받기";
+        
+        // 정답을 맞추면 DB에 점수 실시간 업데이트
+        if (auth.currentUser) {
+          try {
+            await set(ref(db, 'users/' + auth.currentUser.uid + '/score'), score);
+          } catch (err) {
+            console.error("점수 저장 실패:", err);
+          }
+        }
+
+        morseInput.disabled = true; submitBtn.disabled = true; playBtn.textContent = "🔊 다음 문제 받기";
       } else {
         statusBox.style.color = "red";
         statusBox.textContent = "❌ 틀렸습니다. 띄어쓰기나 부호를 다시 확인하고 시도해보세요!";
@@ -258,9 +271,7 @@
     }
 
     submitBtn.addEventListener('click', checkAnswer);
-    morseInput.addEventListener('keydown', (e) => {
-      if(e.key === 'Enter') checkAnswer();
-    });
+    morseInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') checkAnswer(); });
 
   </script>
 </body>
