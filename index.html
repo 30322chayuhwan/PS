@@ -42,8 +42,7 @@
     .top-bar { display: flex; justify-content: space-between; align-items: center; background: #f5f5f5; padding: 12px 16px; border-radius: 12px; margin-bottom: 24px; }
     .score-board { font-size: 18px; font-weight: bold; color: #d32f2f; }
 
-    .play-btn { background: #ff9800; color: white; width: 100%; height: 60px; font-size: 18px; margin-bottom: 10px; border-radius: 16px; }
-    .replay-btn { background: #009688; color: white; width: 100%; height: 46px; font-size: 15px; margin-bottom: 16px; border-radius: 12px; }
+    .play-btn { background: #ff9800; color: white; width: 100%; height: 60px; font-size: 18px; margin-bottom: 16px; border-radius: 16px; }
     
     .input-section { background: #e3f2fd; padding: 20px; border-radius: 16px; margin-bottom: 20px; }
     .input-section p { margin-top: 0; font-size: 14px; color: #1565c0; line-height: 1.5; }
@@ -85,9 +84,7 @@
       <div id="morseChart" class="chart-box hidden">
         </div>
 
-      <button id="playBtn" class="play-btn">🔥 새로운 문제 받기</button>
-      <button id="replayBtn" class="replay-btn hidden">🔈 방금 그 단어 다시 듣기</button>
-      
+      <button id="playBtn" class="play-btn">🔊 새로운 문제 듣기</button>
       <div id="status" class="status">버튼을 눌러 문제를 받아오세요.</div>
 
       <div class="input-section">
@@ -98,10 +95,13 @@
         <input type="text" id="morseInput" class="morse-input" placeholder=".- .--. .--. .-.. ." disabled autocomplete="off"/>
         <button id="submitBtn" class="submit-btn" disabled>정답 확인</button>
       </div>
+
+      <audio id="audioPlayer" class="hidden"></audio>
     </div>
   </div>
 
   <script type="module">
+    // Firebase 필수 모듈 불러오기 (Auth + Database)
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
     import { getDatabase, ref, set, get } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
@@ -117,9 +117,10 @@
       measurementId: "G-XNW8RT9QFW"
     };
 
-    // ⚠️ 앱스 스크립트 웹 앱 URL을 여기에 다시 넣어주세요!
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxAyhLsaljbx9BnhvyZuxl192u3gtfEmQ1TujPFF5Jiww9erO7_E684yJDJ3zPDSl1ITQ/exec';
+    // ⚠️ 앱스 스크립트 웹 앱 URL을 여기에 꼭 다시 넣어주세요!
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzheptt3pWHKQAfJV2ICktpFI_zO89blWLcPUdr_cT931VL9SXxNV879D6SnlRzKSHbqA/exec';
 
+    // Firebase 초기화
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getDatabase(app);
@@ -146,10 +147,11 @@
     const morseChart = document.getElementById('morseChart');
     const toggleChartBtn = document.getElementById('toggleChartBtn');
     const playBtn = document.getElementById('playBtn');
-    const replayBtn = document.getElementById('replayBtn');
     const submitBtn = document.getElementById('submitBtn');
     const morseInput = document.getElementById('morseInput');
+    const audioPlayer = document.getElementById('audioPlayer');
 
+    // 표 렌더링
     for (const [letter, morse] of Object.entries(morseDict)) {
       const div = document.createElement('div');
       div.className = 'chart-item';
@@ -159,6 +161,7 @@
 
     toggleChartBtn.addEventListener('click', () => { morseChart.classList.toggle('hidden'); });
 
+    // 로그인/회원가입
     document.getElementById('signupBtn').addEventListener('click', async () => {
       if(passwordInput.value.length < 6) return alert("비밀번호 6자리 이상 입력하세요.");
       try { await createUserWithEmailAndPassword(auth, emailInput.value, passwordInput.value); alert('가입 완료!'); } 
@@ -172,24 +175,32 @@
 
     document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
 
+    // 로그인 상태 감지 & DB에서 점수 불러오기
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         authSection.classList.add('hidden');
         appSection.classList.remove('hidden');
         userEmailLabel.textContent = user.email;
 
+        // DB에서 해당 유저의 점수 가져오기 (경로: users/유저고유UID/score)
         const scoreRef = ref(db, 'users/' + user.uid + '/score');
         try {
           const snapshot = await get(scoreRef);
-          if (snapshot.exists()) score = snapshot.val(); 
-          else { score = 0; await set(scoreRef, 0); }
+          if (snapshot.exists()) {
+            score = snapshot.val(); // 기존 점수가 있으면 덮어씌움
+          } else {
+            score = 0;
+            await set(scoreRef, 0); // 처음 온 유저면 DB에 0점 저장
+          }
           scoreDisplay.textContent = score;
-        } catch (err) { console.error("점수 불러오기 오류:", err); }
+        } catch (err) {
+          console.error("점수 불러오기 오류:", err);
+        }
 
       } else {
         authSection.classList.remove('hidden');
         appSection.classList.add('hidden');
-        score = 0; 
+        score = 0; // 로그아웃 시 로컬 점수 초기화
       }
     });
 
@@ -197,23 +208,11 @@
       return word.split('').map(char => morseDict[char] || '').join(' ');
     }
 
-    // 브라우저 내장 TTS 함수
-    function speakWord(word) {
-      if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(word);
-        utterance.lang = 'en-US'; // 영어 발음
-        utterance.rate = 0.9;     // 발음 속도 (조금 천천히)
-        window.speechSynthesis.speak(utterance);
-      } else {
-        alert("현재 브라우저에서는 음성 기능을 지원하지 않습니다.");
-      }
-    }
-
+    // 문제 가져오기
     playBtn.addEventListener('click', async () => {
       try {
         playBtn.disabled = true; submitBtn.disabled = true; morseInput.disabled = true;
-        replayBtn.classList.add('hidden');
-        statusBox.textContent = "⏳ 클로드 AI가 문제를 만들고 있습니다...";
+        statusBox.textContent = "⏳ AI가 무작위 단어를 생성하고 있습니다...";
         
         const response = await fetch(APPS_SCRIPT_URL, {
           method: 'POST',
@@ -226,25 +225,25 @@
         currentWord = data.word; 
         correctMorse = wordToMorse(currentWord); 
 
-        // 단어 소리내어 읽기
-        speakWord(currentWord);
+        const byteCharacters = atob(data.audioBase64);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) byteNumbers[i] = byteCharacters.charCodeAt(i);
+        const blob = new Blob([new Uint8Array(byteNumbers)], { type: 'audio/mpeg' });
+        
+        audioPlayer.src = URL.createObjectURL(blob);
+        audioPlayer.play();
 
         statusBox.textContent = `단어가 재생되었습니다! 들은 단어의 모스부호를 입력하세요.`; 
         morseInput.disabled = false; submitBtn.disabled = false; morseInput.value = ""; morseInput.focus();
-        replayBtn.classList.remove('hidden');
 
       } catch (err) {
         statusBox.textContent = "❌ 단어를 불러오는 데 실패했습니다."; alert("에러: " + err.message);
       } finally {
-        playBtn.disabled = false; playBtn.textContent = "🔥 새로운 문제 받기";
+        playBtn.disabled = false; playBtn.textContent = "🔊 문제 다시 듣기";
       }
     });
 
-    // 다시 듣기 버튼 로직
-    replayBtn.addEventListener('click', () => {
-      if(currentWord) speakWord(currentWord);
-    });
-
+    // 정답 확인 및 DB에 점수 저장
     async function checkAnswer() {
       const userAnswer = morseInput.value.trim();
       
@@ -254,12 +253,16 @@
         statusBox.style.color = "green";
         statusBox.textContent = "🎉 정답입니다! 다음 문제를 받아주세요.";
         
+        // 정답을 맞추면 DB에 점수 실시간 업데이트
         if (auth.currentUser) {
-          try { await set(ref(db, 'users/' + auth.currentUser.uid + '/score'), score); } 
-          catch (err) { console.error("점수 저장 실패:", err); }
+          try {
+            await set(ref(db, 'users/' + auth.currentUser.uid + '/score'), score);
+          } catch (err) {
+            console.error("점수 저장 실패:", err);
+          }
         }
 
-        morseInput.disabled = true; submitBtn.disabled = true; replayBtn.classList.add('hidden');
+        morseInput.disabled = true; submitBtn.disabled = true; playBtn.textContent = "🔊 다음 문제 받기";
       } else {
         statusBox.style.color = "red";
         statusBox.textContent = "❌ 틀렸습니다. 띄어쓰기나 부호를 다시 확인하고 시도해보세요!";
